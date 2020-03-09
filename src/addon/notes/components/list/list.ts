@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
 
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Content, ModalController } from 'ionic-angular';
+import { TranslateService } from '@ngx-translate/core';
 import { CoreDomUtilsProvider } from '@providers/utils/dom';
 import { CoreEventsProvider } from '@providers/events';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreTextUtilsProvider } from '@providers/utils/text';
 import { CoreUserProvider } from '@core/user/providers/user';
 import { coreSlideInOut } from '@classes/animations';
-import { AddonNotesProvider, AddonNotesNoteFormatted } from '../../providers/notes';
+import { AddonNotesProvider } from '../../providers/notes';
 import { AddonNotesOfflineProvider } from '../../providers/notes-offline';
 import { AddonNotesSyncProvider } from '../../providers/notes-sync';
 
@@ -43,7 +44,7 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
     type = 'course';
     refreshIcon = 'spinner';
     syncIcon = 'spinner';
-    notes: AddonNotesNoteFormatted[];
+    notes: any[];
     hasOffline = false;
     notesLoaded = false;
     user: any;
@@ -54,7 +55,8 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
     constructor(private domUtils: CoreDomUtilsProvider, private textUtils: CoreTextUtilsProvider,
             sitesProvider: CoreSitesProvider, eventsProvider: CoreEventsProvider, private modalCtrl: ModalController,
             private notesProvider: AddonNotesProvider, private notesSync: AddonNotesSyncProvider,
-            private userProvider: CoreUserProvider, private notesOffline: AddonNotesOfflineProvider) {
+            private userProvider: CoreUserProvider, private translate: TranslateService,
+            private notesOffline: AddonNotesOfflineProvider) {
         // Refresh data if notes are synchronized automatically.
         this.syncObserver = eventsProvider.on(AddonNotesSyncProvider.AUTO_SYNCED, (data) => {
             if (data.courseId == this.courseId) {
@@ -88,9 +90,9 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
     /**
      * Fetch notes.
      *
-     * @param sync When to resync notes.
-     * @param showErrors When to display errors or not.
-     * @return Promise with the notes.
+     * @param  {boolean} sync         When to resync notes.
+     * @param  {boolean} [showErrors] When to display errors or not.
+     * @return {Promise<any>}         Promise with the notes.
      */
     private fetchNotes(sync: boolean, showErrors?: boolean): Promise<any> {
         const promise = sync ? this.syncNotes(showErrors) : Promise.resolve();
@@ -99,25 +101,21 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
             // Ignore errors.
         }).then(() => {
             return this.notesProvider.getNotes(this.courseId, this.userId).then((notes) => {
-                const notesList: AddonNotesNoteFormatted[] = notes[this.type + 'notes'] || [];
+                notes = notes[this.type + 'notes'] || [];
 
-                notesList.forEach((note) => {
-                    note.content = this.textUtils.decodeHTML(note.content);
-                });
+                return this.notesProvider.setOfflineDeletedNotes(notes, this.courseId).then((notes) => {
 
-                return this.notesProvider.setOfflineDeletedNotes(notesList, this.courseId).then((notesList) => {
-
-                    this.hasOffline = notesList.some((note) => note.offline || note.deleted);
+                    this.hasOffline = notes.some((note) => note.offline || note.deleted);
 
                     if (this.userId) {
-                        this.notes = notesList;
+                        this.notes = notes;
 
                         // Get the user profile to retrieve the user image.
                         return this.userProvider.getProfile(this.userId, this.courseId, true).then((user) => {
                             this.user = user;
                         });
                     } else {
-                        return this.notesProvider.getNotesUserData(notesList, this.courseId).then((notes) => {
+                        return this.notesProvider.getNotesUserData(notes, this.courseId).then((notes) => {
                             this.notes = notes;
                         });
                     }
@@ -128,7 +126,7 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
         }).finally(() => {
             let canDelete = this.notes && this.notes.length > 0;
             if (canDelete && this.type == 'personal') {
-                canDelete = !!this.notes.find((note) =>  {
+                canDelete = this.notes.find((note) =>  {
                     return note.usermodified == this.currentUserId;
                 });
             }
@@ -143,8 +141,8 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
     /**
      * Refresh notes on PTR.
      *
-     * @param showErrors Whether to display errors or not.
-     * @param refresher Refresher instance.
+     * @param {boolean} showErrors Whether to display errors or not.
+     * @param {any}     refresher  Refresher instance.
      */
     refreshNotes(showErrors: boolean, refresher?: any): void {
         this.refreshIcon = 'spinner';
@@ -175,12 +173,11 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
     /**
      * Add a new Note to user and course.
      *
-     * @param e Event.
+     * @param {Event} e Event.
      */
     addNote(e: Event): void {
         e.preventDefault();
         e.stopPropagation();
-
         const modal = this.modalCtrl.create('AddonNotesAddPage', { userId: this.userId, courseId: this.courseId, type: this.type });
         modal.onDidDismiss((data) => {
             if (data && data.sent && data.type) {
@@ -195,21 +192,20 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
                 this.typeChanged();
             }
         });
-
         modal.present();
     }
 
     /**
      * Delete a note.
      *
-     * @param e Click event.
-     * @param note Note to delete.
+     * @param {Event} e Click event.
+     * @param {any} note Note to delete.
      */
-    deleteNote(e: Event, note: AddonNotesNoteFormatted): void {
+    deleteNote(e: Event, note: any): void {
         e.preventDefault();
         e.stopPropagation();
 
-        this.domUtils.showDeleteConfirm('addon.notes.deleteconfirm').then(() => {
+        this.domUtils.showConfirm(this.translate.instant('addon.notes.deleteconfirm')).then(() => {
             this.notesProvider.deleteNote(note, this.courseId).then(() => {
                 this.showDelete = false;
 
@@ -227,10 +223,10 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
     /**
      * Restore a note.
      *
-     * @param e Click event.
-     * @param note Note to delete.
+     * @param {Event} e Click event.
+     * @param {any} note Note to delete.
      */
-    undoDeleteNote(e: Event, note: AddonNotesNoteFormatted): void {
+    undoDeleteNote(e: Event, note: any): void {
         e.preventDefault();
         e.stopPropagation();
 
@@ -249,8 +245,8 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
     /**
      * Tries to synchronize course notes.
      *
-     * @param showErrors Whether to display errors or not.
-     * @return Promise resolved if sync is successful, rejected otherwise.
+     * @param  {boolean} showErrors Whether to display errors or not.
+     * @return {Promise<any>}       Promise resolved if sync is successful, rejected otherwise.
      */
     private syncNotes(showErrors: boolean): Promise<any> {
         return this.notesSync.syncNotes(this.courseId).then((warnings) => {
@@ -267,7 +263,7 @@ export class AddonNotesListComponent implements OnInit, OnDestroy {
     /**
      * Show sync warnings if any.
      *
-     * @param warnings the warnings
+     * @param {string[]} warnings the warnings
      */
     private showSyncWarnings(warnings: string[]): void {
         const message = this.textUtils.buildMessage(warnings);

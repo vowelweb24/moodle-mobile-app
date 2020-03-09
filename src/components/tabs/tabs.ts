@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -194,7 +194,7 @@ export class CoreTabsComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     /**
      * Add a new tab if it isn't already in the list of tabs.
      *
-     * @param tab The tab to add.
+     * @param {CoreTabComponent} tab The tab to add.
      */
     addTab(tab: CoreTabComponent): void {
         // Check if tab is already in the list.
@@ -223,8 +223,10 @@ export class CoreTabsComponent implements OnInit, AfterViewInit, OnChanges, OnDe
             return;
         }
 
-        this.calculateMaxSlides();
-        this.updateSlides();
+        setTimeout(() => {
+            this.calculateMaxSlides();
+            this.updateSlides();
+        });
     }
 
     /**
@@ -246,8 +248,8 @@ export class CoreTabsComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     /**
      * Get the index of tab.
      *
-     * @param tab Tab object to check.
-     * @return Index number on the tabs array or -1 if not found.
+     * @param  {any}    tab Tab object to check.
+     * @return {number}     Index number on the tabs array or -1 if not found.
      */
     getIndex(tab: any): number {
         for (let i = 0; i < this.tabs.length; i++) {
@@ -263,7 +265,7 @@ export class CoreTabsComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     /**
      * Get the current selected tab.
      *
-     * @return Selected tab.
+     * @return {CoreTabComponent} Selected tab.
      */
     getSelected(): CoreTabComponent {
         return this.tabs[this.selected];
@@ -350,30 +352,32 @@ export class CoreTabsComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
         this.slideChanged();
 
-        this.calculateTabBarHeight();
-        this.slides.update();
-        this.slides.resize();
+        setTimeout(() => {
+            this.calculateTabBarHeight();
+            this.slides.update();
+            this.slides.resize();
 
-        if (!this.hasSliddenToInitial && this.selected && this.selected >= this.slidesShown) {
-            this.hasSliddenToInitial = true;
-            this.shouldSlideToInitial = true;
+            if (!this.hasSliddenToInitial && this.selected && this.selected >= this.slidesShown) {
+                this.hasSliddenToInitial = true;
+                this.shouldSlideToInitial = true;
+
+                setTimeout(() => {
+                    if (this.shouldSlideToInitial) {
+                        this.slides.slideTo(this.selected, 0);
+                        this.shouldSlideToInitial = false;
+                        this.updateAriaHidden(); // Slide's slideTo() sets aria-hidden to true, update it.
+                    }
+                }, 400);
+
+                return;
+            } else if (this.selected) {
+                this.hasSliddenToInitial = true;
+            }
 
             setTimeout(() => {
-                if (this.shouldSlideToInitial) {
-                    this.slides.slideTo(this.selected, 0);
-                    this.shouldSlideToInitial = false;
-                    this.updateAriaHidden(); // Slide's slideTo() sets aria-hidden to true, update it.
-                }
+                this.updateAriaHidden(); // Slide's update() sets aria-hidden to true, update it.
             }, 400);
-
-            return;
-        } else if (this.selected) {
-            this.hasSliddenToInitial = true;
-        }
-
-        setTimeout(() => {
-            this.updateAriaHidden(); // Slide's update() sets aria-hidden to true, update it.
-        }, 400);
+        });
     }
 
     protected calculateMaxSlides(): void {
@@ -411,7 +415,7 @@ export class CoreTabsComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     /**
      * Show or hide the tabs. This is used when the user is scrolling inside a tab.
      *
-     * @param scrollElement Scroll element to check scroll position.
+     * @param {any} scrollElement Scroll element to check scroll position.
      */
     showHideTabs(scrollElement: any): void {
         if (!this.tabBarHeight) {
@@ -443,7 +447,7 @@ export class CoreTabsComponent implements OnInit, AfterViewInit, OnChanges, OnDe
             this.calculateSlides();
         }
 
-        if (this.tabsShown && scrollElement.scrollHeight > scrollElement.clientHeight + (this.tabBarHeight - scroll)) {
+        if (this.tabsShown) {
             // Smooth translation.
             this.topTabsElement.style.transform = 'translateY(-' + scroll + 'px)';
             this.originalTabsContainer.style.transform = 'translateY(-' + scroll + 'px)';
@@ -456,7 +460,7 @@ export class CoreTabsComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     /**
      * Remove a tab from the list of tabs.
      *
-     * @param tab The tab to remove.
+     * @param {CoreTabComponent} tab The tab to remove.
      */
     removeTab(tab: CoreTabComponent): void {
         const index = this.getIndex(tab);
@@ -468,7 +472,7 @@ export class CoreTabsComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     /**
      * Select a certain tab.
      *
-     * @param index The index of the tab to select.
+     * @param {number} index The index of the tab to select.
      */
     selectTab(index: number): void {
         if (index == this.selected) {

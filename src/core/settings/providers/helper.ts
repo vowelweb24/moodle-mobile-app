@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@ import { CoreFilepoolProvider } from '@providers/filepool';
 import { CoreLoggerProvider } from '@providers/logger';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreUtilsProvider } from '@providers/utils/utils';
-import { CoreConstants } from '@core/constants';
-import { CoreConfigProvider } from '@providers/config';
-import { CoreConfigConstants } from '../../../configconstants';
 import { TranslateService } from '@ngx-translate/core';
 
 /**
@@ -35,18 +32,17 @@ export class CoreSettingsHelper {
 
     constructor(loggerProvider: CoreLoggerProvider, private appProvider: CoreAppProvider, private cronDelegate: CoreCronDelegate,
             private eventsProvider: CoreEventsProvider, private filePoolProvider: CoreFilepoolProvider,
-            private sitesProvider: CoreSitesProvider, private utils: CoreUtilsProvider, private translate: TranslateService,
-            private configProvider: CoreConfigProvider) {
+            private sitesProvider: CoreSitesProvider, private utils: CoreUtilsProvider, private translate: TranslateService) {
         this.logger = loggerProvider.getInstance('CoreSettingsHelper');
     }
 
     /**
      * Get a certain processor from a list of processors.
      *
-     * @param processors List of processors.
-     * @param name Name of the processor to get.
-     * @param fallback True to return first processor if not found, false to not return any. Defaults to true.
-     * @return Processor.
+     * @param {any[]} processors List of processors.
+     * @param {string} name Name of the processor to get.
+     * @param {boolean} [fallback=true] True to return first processor if not found, false to not return any. Defaults to true.
+     * @return {any} Processor.
      */
     getProcessor(processors: any[], name: string, fallback: boolean = true): any {
         if (!processors || !processors.length) {
@@ -67,9 +63,9 @@ export class CoreSettingsHelper {
     /**
      * Return the components and notifications that have a certain processor.
      *
-     * @param processor Name of the processor to filter.
-     * @param components Array of components.
-     * @return Filtered components.
+     * @param {string} processor Name of the processor to filter.
+     * @param {any[]} components Array of components.
+     * @return {any[]} Filtered components.
      */
     getProcessorComponents(processor: string, components: any[]): any[] {
         const result = [];
@@ -108,8 +104,8 @@ export class CoreSettingsHelper {
     /**
      * Get the synchronization promise of a site.
      *
-     * @param siteId ID of the site.
-     * @return Sync promise or null if site is not being syncrhonized.
+     * @param {string} siteId ID of the site.
+     * @return {Promise<any> | null} Sync promise or null if site is not being syncrhonized.
      */
     getSiteSyncPromise(siteId: string): Promise<any> {
         if (this.syncPromises[siteId]) {
@@ -122,9 +118,9 @@ export class CoreSettingsHelper {
     /**
      * Synchronize a site.
      *
-     * @param syncOnlyOnWifi True to sync only on wifi, false otherwise.
-     * @param siteId ID of the site to synchronize.
-     * @return Promise resolved when synchronized, rejected if failure.
+     * @param {boolean} syncOnlyOnWifi True to sync only on wifi, false otherwise.
+     * @param {string} siteId ID of the site to synchronize.
+     * @return {Promise<any>} Promise resolved when synchronized, rejected if failure.
      */
     synchronizeSite(syncOnlyOnWifi: boolean, siteId: string): Promise<any> {
         if (this.syncPromises[siteId]) {
@@ -171,58 +167,12 @@ export class CoreSettingsHelper {
             });
         }));
 
-        let syncPromise = Promise.all(promises);
+        const syncPromise = Promise.all(promises);
         this.syncPromises[siteId] = syncPromise;
-        syncPromise = syncPromise.finally(() => {
+        syncPromise.finally(() => {
             delete this.syncPromises[siteId];
         });
 
         return syncPromise;
-    }
-
-    /**
-     * Init Settings related to DOM.
-     */
-    initDomSettings(): void {
-        // Set the font size based on user preference.
-        this.configProvider.get(CoreConstants.SETTINGS_FONT_SIZE, CoreConfigConstants.font_sizes[0].toString()).then((fontSize) => {
-            this.setFontSize(fontSize);
-        });
-
-        if (!!CoreConfigConstants.forceColorScheme) {
-            this.setColorScheme(CoreConfigConstants.forceColorScheme);
-        } else {
-            let defaultColorScheme = 'light';
-
-            if (window.matchMedia('(prefers-color-scheme: dark)').matches ||
-                    window.matchMedia('(prefers-color-scheme: light)').matches) {
-                defaultColorScheme = 'auto';
-            }
-
-            this.configProvider.get(CoreConstants.SETTINGS_COLOR_SCHEME, defaultColorScheme).then((scheme) => {
-                this.setColorScheme(scheme);
-            });
-        }
-    }
-
-    /**
-     * Set document default font size.
-     *
-     * @param fontSize Font size in percentage.
-     */
-    setFontSize(fontSize: string): void {
-        document.documentElement.style.fontSize = fontSize + '%';
-    }
-
-    /**
-     * Set body color scheme.
-     *
-     * @param colorScheme Name of the color scheme.
-     */
-    setColorScheme(colorScheme: string): void {
-        document.body.classList.remove('scheme-light');
-        document.body.classList.remove('scheme-dark');
-        document.body.classList.remove('scheme-auto');
-        document.body.classList.add('scheme-' + colorScheme);
     }
 }

@@ -1,21 +1,32 @@
-<ion-header>
-    <ion-navbar core-back-button>
-        <ion-title>
-            <core-format-text [text]="siteName" contextLevel="system" [contextInstanceId]="0"></core-format-text>
-            <img src="assets/img/login_logo.png" class="core-header-logo" [alt]="siteName">
-        </ion-title>
-
+<ion-header >
+    <ion-navbar id="changeclr" core-back-button>
+        <!-- <ion-title>
+            <core-format-text [text]="siteName"></core-format-text>
+        </ion-title> -->
+        <!-- <img src="./../../../../../resources/Logonew6.png"></img> -->
+        <img src="assets/img/logonew.png" style="width: 42%; margin-left: 10px;">
         <ion-buttons end>
-            <button *ngIf="searchEnabled" ion-button icon-only (click)="openSearch()" [attr.aria-label]="'core.courses.searchcourses' | translate">
-                <ion-icon name="search"></ion-icon>
+            <button *ngIf="searchEnabled" id="searchclr" ion-button icon-only (click)="openSearch()"
+                [attr.aria-label]="'core.courses.searchcourses' | translate">
+                <ion-icon  name="search"></ion-icon>
             </button>
-            <core-context-menu>
+            <core-context-menu id="ccm">
                 <!-- Action for dashboard and site home. -->
-                <core-context-menu-item *ngIf="(siteHomeEnabled || dashboardEnabled) && (downloadCourseEnabled || downloadCoursesEnabled)" [priority]="1000" [content]="'core.settings.showdownloadoptions' | translate" (action)="toggleDownload()" [iconAction]="downloadEnabledIcon"></core-context-menu-item>
+                <core-context-menu-item
+                    *ngIf="(siteHomeEnabled || dashboardEnabled) && (downloadCourseEnabled || downloadCoursesEnabled)"
+                    [priority]="1000" [content]="'core.settings.showdownloadoptions' | translate"
+                    (action)="toggleDownload()" [iconAction]="downloadEnabledIcon"></core-context-menu-item>
 
                 <!-- Actions when both site home and dashboard are disabled. -->
-                <core-context-menu-item *ngIf="!siteHomeEnabled && !dashboardEnabled && mcComponent && mcComponent.downloadAllCoursesEnabled && mcComponent.courses && mcComponent.courses.length >= 2" [priority]="800" [content]="'core.courses.downloadcourses' | translate" (action)="mcComponent.prefetchCourses()" [iconAction]="mcComponent.prefetchCoursesData.icon" [closeOnClick]="false" [badge]="mcComponent.prefetchCoursesData.badge"></core-context-menu-item>
-                <core-context-menu-item *ngIf="!siteHomeEnabled && !dashboardEnabled && mcComponent && mcComponent.courses && mcComponent.courses.length > 5" [priority]="700" [content]="'core.courses.filtermycourses' | translate" (action)="mcComponent.switchFilter()" [iconAction]="'funnel'"></core-context-menu-item>
+                <core-context-menu-item
+                    *ngIf="!siteHomeEnabled && !dashboardEnabled && mcComponent && mcComponent.downloadAllCoursesEnabled && mcComponent.courses && mcComponent.courses.length >= 2"
+                    [priority]="800" [content]="'core.courses.downloadcourses' | translate"
+                    (action)="mcComponent.prefetchCourses()" [iconAction]="mcComponent.prefetchCoursesData.icon"
+                    [closeOnClick]="false" [badge]="mcComponent.prefetchCoursesData.badge"></core-context-menu-item>
+                <core-context-menu-item
+                    *ngIf="!siteHomeEnabled && !dashboardEnabled && mcComponent && mcComponent.courses && mcComponent.courses.length > 5"
+                    [priority]="700" [content]="'core.courses.filtermycourses' | translate"
+                    (action)="mcComponent.switchFilter()" [iconAction]="'funnel'"></core-context-menu-item>
             </core-context-menu>
         </ion-buttons>
     </ion-navbar>
@@ -23,11 +34,13 @@
 <ion-content>
     <core-tabs [selectedIndex]="firstSelectedTab" [hideUntil]="tabsReady">
         <!-- Site home tab. -->
-        <core-tab [show]="siteHomeEnabled" [title]="'core.sitehome.sitehome' | translate">
+        <core-tab [show]="siteHomeEnabled" title="Home">
             <ng-template>
                 <ion-content>
-                    <ion-refresher [enabled]="!!siteHomeComponent && siteHomeComponent.dataLoaded" (ionRefresh)="siteHomeComponent.doRefresh($event)">
-                        <ion-refresher-content pullingText="{{ 'core.pulltorefresh' | translate }}"></ion-refresher-content>
+                    <ion-refresher [enabled]="!!siteHomeComponent && siteHomeComponent.dataLoaded"
+                        (ionRefresh)="siteHomeComponent.doRefresh($event)">
+                        <ion-refresher-content pullingText="{{ 'core.pulltorefresh' | translate }}">
+                        </ion-refresher-content>
                     </ion-refresher>
                     <core-sitehome-index [downloadEnabled]="downloadEnabled"></core-sitehome-index>
                 </ion-content>
@@ -39,17 +52,20 @@
             <ng-template>
                 <ion-content>
                     <ion-refresher [enabled]="dashboardLoaded" (ionRefresh)="refreshDashboard($event)">
-                        <ion-refresher-content pullingText="{{ 'core.pulltorefresh' | translate }}"></ion-refresher-content>
+                        <ion-refresher-content pullingText="{{ 'core.pulltorefresh' | translate }}">
+                        </ion-refresher-content>
                     </ion-refresher>
                     <core-loading [hideUntil]="dashboardLoaded" class="core-loading-center">
                         <ion-list>
                             <!-- Dashboard blocks. -->
                             <ng-container *ngFor="let block of blocks">
-                                <core-block *ngIf="block.visible" [block]="block" contextLevel="user" [instanceId]="userId" [extraData]="{'downloadEnabled': downloadEnabled}"></core-block>
+                                <core-block [block]="block" contextLevel="user" [instanceId]="userId"
+                                    [extraData]="{'downloadEnabled': downloadEnabled}"></core-block>
                             </ng-container>
                         </ion-list>
 
-                        <core-empty-box *ngIf="blocks.length == 0" icon="qr-scanner" [message]="'core.course.nocontentavailable' | translate"></core-empty-box>
+                        <core-empty-box *ngIf="blocks.length == 0" icon="qr-scanner"
+                            [message]="'core.course.nocontentavailable' | translate"></core-empty-box>
                     </core-loading>
                 </ion-content>
             </ng-template>
@@ -59,8 +75,10 @@
         <core-tab [show]="!siteHomeEnabled && !dashboardEnabled" [title]="'core.courses.mymoodle' | translate">
             <ng-template>
                 <ion-content>
-                    <ion-refresher [enabled]="mcComponent && mcComponent.coursesLoaded" (ionRefresh)="refreshMyCourses($event)">
-                        <ion-refresher-content pullingText="{{ 'core.pulltorefresh' | translate }}"></ion-refresher-content>
+                    <ion-refresher [enabled]="mcComponent && mcComponent.coursesLoaded"
+                        (ionRefresh)="refreshMyCourses($event)">
+                        <ion-refresher-content pullingText="{{ 'core.pulltorefresh' | translate }}">
+                        </ion-refresher-content>
                     </ion-refresher>
                     <core-courses-my-courses></core-courses-my-courses>
                 </ion-content>

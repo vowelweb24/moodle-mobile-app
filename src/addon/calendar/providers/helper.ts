@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import * as moment from 'moment';
 export class AddonCalendarHelperProvider {
     protected logger;
 
-    static EVENTICONS = {
-        course: 'fa-graduation-cap',
+    protected EVENTICONS = {
+        course: 'fa-university',
         group: 'people',
         site: 'globe',
         user: 'person',
@@ -49,8 +49,8 @@ export class AddonCalendarHelperProvider {
     /**
      * Calculate some day data based on a list of events for that day.
      *
-     * @param day Day.
-     * @param events Events.
+     * @param {any} day Day.
+     * @param {any[]} events Events.
      */
     calculateDayData(day: any, events: any[]): void {
         day.hasevents = events.length > 0;
@@ -71,9 +71,9 @@ export class AddonCalendarHelperProvider {
     /**
      * Check if current user can create/edit events.
      *
-     * @param courseId Course ID. If not defined, site calendar.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with boolean: whether the user can create events.
+     * @param {number} [courseId] Course ID. If not defined, site calendar.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<boolean>} Promise resolved with boolean: whether the user can create events.
      */
     canEditEvents(courseId?: number, siteId?: string): Promise<boolean> {
         return this.calendarProvider.canEditEvents(siteId).then((canEdit) => {
@@ -94,8 +94,8 @@ export class AddonCalendarHelperProvider {
      * Classify events into their respective months and days. If an event duration covers more than one day,
      * it will be included in all the days it lasts.
      *
-     * @param events Events to classify.
-     * @return Object with the classified events.
+     * @param {any[]} events Events to classify.
+     * @return {{[monthId: string]: {[day: number]: any[]}}} Object with the classified events.
      */
     classifyIntoMonths(events: any[]): {[monthId: string]: {[day: number]: any[]}} {
 
@@ -128,31 +128,16 @@ export class AddonCalendarHelperProvider {
     /**
      * Convenience function to format some event data to be rendered.
      *
-     * @param e Event to format.
+     * @param {any} e Event to format.
      */
     formatEventData(e: any): void {
-        e.eventIcon = AddonCalendarHelperProvider.EVENTICONS[e.eventtype] || '';
-        if (!e.eventIcon) {
-            e.eventIcon = this.courseProvider.getModuleIconSrc(e.modulename);
-            e.moduleIcon = e.eventIcon;
+        e.icon = this.EVENTICONS[e.eventtype] || false;
+        if (!e.icon) {
+            e.icon = this.courseProvider.getModuleIconSrc(e.modulename);
+            e.moduleIcon = e.icon;
         }
 
         e.formattedType = this.calendarProvider.getEventType(e);
-
-        // Calculate context.
-        const categoryId = e.category ? e.category.id : e.categoryid,
-            courseId = e.course ? e.course.id : e.courseid;
-
-        if (categoryId > 0) {
-            e.contextLevel = 'coursecat';
-            e.contextInstanceId = categoryId;
-        } else if (courseId > 0) {
-            e.contextLevel = 'course';
-            e.contextInstanceId = courseId;
-        } else {
-            e.contextLevel = 'user';
-            e.contextInstanceId = e.userid;
-        }
 
         if (typeof e.duration != 'undefined') {
             // It's an offline event, add some calculated data.
@@ -172,10 +157,10 @@ export class AddonCalendarHelperProvider {
     /**
      * Get options (name & value) for each allowed event type.
      *
-     * @param eventTypes Result of getAllowedEventTypes.
-     * @return Options.
+     * @param {any} eventTypes Result of getAllowedEventTypes.
+     * @return {{name: string, value: string}[]} Options.
      */
-    getEventTypeOptions(eventTypes: {[name: string]: boolean}): {name: string, value: string}[] {
+    getEventTypeOptions(eventTypes: any): {name: string, value: string}[] {
         const options = [];
 
         if (eventTypes.user) {
@@ -200,9 +185,9 @@ export class AddonCalendarHelperProvider {
     /**
      * Get the month "id" (year + month).
      *
-     * @param year Year.
-     * @param month Month.
-     * @return The "id".
+     * @param {number} year Year.
+     * @param {number} month Month.
+     * @return {string} The "id".
      */
     getMonthId(year: number, month: number): string {
         return year + '#' + month;
@@ -213,10 +198,10 @@ export class AddonCalendarHelperProvider {
      *
      * The result has the same structure than getMonthlyEvents, but it only contains fields that are actually used by the app.
      *
-     * @param year Year to get.
-     * @param month Month to get.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with the response.
+     * @param {number} year Year to get.
+     * @param {number} month Month to get.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resolved with the response.
      */
     getOfflineMonthWeeks(year: number, month: number, siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -271,9 +256,9 @@ export class AddonCalendarHelperProvider {
     /**
      * Check if the data of an event has changed.
      *
-     * @param data Current data.
-     * @param original Original data.
-     * @return True if data has changed, false otherwise.
+     * @param {any} data Current data.
+     * @param {any} [original] Original data.
+     * @return {boolean} True if data has changed, false otherwise.
      */
     hasEventDataChanged(data: any, original?: any): boolean {
         if (!original) {
@@ -310,44 +295,13 @@ export class AddonCalendarHelperProvider {
     }
 
     /**
-     * Filter events to be shown on the events list.
-     *
-     * @param events Events without filtering.
-     * @param filter Filter from popover.
-     * @param categories Categories indexed by ID.
-     * @return Filtered events.
-     */
-    getFilteredEvents(events: any[], filter: AddonCalendarFilter, categories: any): any[] {
-        // Do not filter.
-        if (!filter.filtered) {
-            return events;
-        }
-
-        const courseId = filter.courseId ? Number(filter.courseId) : undefined;
-
-        if (!courseId || courseId < 0) {
-            // Filter only by type.
-            return events.filter((event) => {
-                return filter[event.formattedType];
-            });
-        }
-
-        const categoryId = filter.categoryId ? Number(filter.categoryId) : undefined;
-
-        return  events.filter((event) => {
-            return filter[event.formattedType] &&
-                this.shouldDisplayEvent(event, courseId, categoryId, categories);
-        });
-    }
-
-    /**
      * Check if an event should be displayed based on the filter.
      *
-     * @param event Event object.
-     * @param courseId Course ID to filter.
-     * @param categoryId Category ID the course belongs to.
-     * @param categories Categories indexed by ID.
-     * @return Whether it should be displayed.
+     * @param {any} event Event object.
+     * @param {number} courseId Course ID to filter.
+     * @param {number} categoryId Category ID the course belongs to.
+     * @param {any} categories Categories indexed by ID.
+     * @return {boolean} Whether it should be displayed.
      */
     shouldDisplayEvent(event: any, courseId: number, categoryId: number, categories: any): boolean {
         if (event.eventtype == 'user' || event.eventtype == 'site') {
@@ -383,19 +337,17 @@ export class AddonCalendarHelperProvider {
             return false;
         }
 
-        const eventCourse = (event.course && event.course.id) || event.courseid;
-
         // Show the event if it is from site home or if it matches the selected course.
-        return eventCourse && (eventCourse == this.sitesProvider.getCurrentSiteHomeId() || eventCourse == courseId);
+        return event.course && (event.course.id == this.sitesProvider.getCurrentSiteHomeId() || event.course.id == courseId);
     }
 
     /**
      * Refresh the month & day for several created/edited/deleted events, and invalidate the months & days
      * for their repeated events if needed.
      *
-     * @param events Events that have been touched and number of times each event is repeated.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Resolved when done.
+     * @param {{event: any, repeated: number}[]} events Events that have been touched and number of times each event is repeated.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Resolved when done.
      */
     refreshAfterChangeEvents(events: {event: any, repeated: number}[], siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -506,26 +458,12 @@ export class AddonCalendarHelperProvider {
      * Refresh the month & day for a created/edited/deleted event, and invalidate the months & days
      * for their repeated events if needed.
      *
-     * @param event Event that has been touched.
-     * @param repeated Number of times the event is repeated.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Resolved when done.
+     * @param {any} event Event that has been touched.
+     * @param {number} repeated Number of times the event is repeated.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Resolved when done.
      */
     refreshAfterChangeEvent(event: any, repeated: number, siteId?: string): Promise<any> {
         return this.refreshAfterChangeEvents([{event: event, repeated: repeated}], siteId);
     }
 }
-
-/**
- * Calculated data for Calendar filtering.
- */
-export type AddonCalendarFilter = {
-    filtered: boolean; // If filter enabled (some filters applied).
-    courseId: number; // Course Id to filter.
-    categoryId: string; // Category Id to filter.
-    course: boolean, // Filter to show course events.
-    group: boolean, // Filter to show group events.
-    site: boolean, // Filter to show show site events.
-    user: boolean, // Filter to show user events.
-    category: boolean // Filter to show category events.
-};

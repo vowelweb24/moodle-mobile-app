@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,16 +24,17 @@ export class CoreContentLinksModuleListHandler extends CoreContentLinksHandlerBa
 
     /**
      * The title to use in the new page. If not defined, the app will try to calculate it.
+     * @type {string}
      */
     protected title: string;
 
     /**
      * Construct the handler.
      *
-     * @param linkHelper The CoreContentLinksHelperProvider instance.
-     * @param translate The TranslateService instance.
-     * @param addon Name of the addon as it's registered in course delegate. It'll be used to check if it's disabled.
-     * @param modName Name of the module (assign, book, ...).
+     * @param {CoreContentLinksHelperProvider} linkHelper The CoreContentLinksHelperProvider instance.
+     * @param {TranslateService} translate The TranslateService instance.
+     * @param {string} addon Name of the addon as it's registered in course delegate. It'll be used to check if it's disabled.
+     * @param {string} modName Name of the module (assign, book, ...).
      */
     constructor(protected linkHelper: CoreContentLinksHelperProvider, protected translate: TranslateService, public addon: string,
             public modName: string) {
@@ -47,10 +48,10 @@ export class CoreContentLinksModuleListHandler extends CoreContentLinksHandlerBa
     /**
      * Get the list of actions for a link (url).
      *
-     * @param siteIds List of sites the URL belongs to.
-     * @param url The URL to treat.
-     * @param params The params of the URL. E.g. 'mysite.com?id=1' -> {id: 1}
-     * @return List of (or promise resolved with list of) actions.
+     * @param {string[]} siteIds List of sites the URL belongs to.
+     * @param {string} url The URL to treat.
+     * @param {any} params The params of the URL. E.g. 'mysite.com?id=1' -> {id: 1}
+     * @return {CoreContentLinksAction[]|Promise<CoreContentLinksAction[]>} List of (or promise resolved with list of) actions.
      */
     getActions(siteIds: string[], url: string, params: any): CoreContentLinksAction[] | Promise<CoreContentLinksAction[]> {
 

@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,12 +36,11 @@ export class AddonModResourceIndexComponent extends CoreCourseModuleMainResource
     mode: string;
     src: string;
     contentText: string;
-    displayDescription = true;
 
     constructor(injector: Injector, private resourceProvider: AddonModResourceProvider, private courseProvider: CoreCourseProvider,
-            private appProvider: CoreAppProvider, private prefetchHandler: AddonModResourcePrefetchHandler,
-            private resourceHelper: AddonModResourceHelperProvider, private sitesProvider: CoreSitesProvider,
-            private utils: CoreUtilsProvider) {
+        private appProvider: CoreAppProvider, private prefetchHandler: AddonModResourcePrefetchHandler,
+        private resourceHelper: AddonModResourceHelperProvider, private sitesProvider: CoreSitesProvider,
+        private utils: CoreUtilsProvider) {
         super(injector);
     }
 
@@ -65,7 +64,7 @@ export class AddonModResourceIndexComponent extends CoreCourseModuleMainResource
     /**
      * Perform the invalidate content function.
      *
-     * @return Resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
     protected invalidateContent(): Promise<any> {
         return this.resourceProvider.invalidateContent(this.module.id, this.courseId);
@@ -74,8 +73,8 @@ export class AddonModResourceIndexComponent extends CoreCourseModuleMainResource
     /**
      * Download resource contents.
      *
-     * @param refresh Whether we're refreshing data.
-     * @return Promise resolved when done.
+     * @param {boolean} [refresh] Whether we're refreshing data.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected fetchContent(refresh?: boolean): Promise<any> {
         // Load module contents if needed. Passing refresh is needed to force reloading contents.
@@ -97,8 +96,6 @@ export class AddonModResourceIndexComponent extends CoreCourseModuleMainResource
         }).then((resource) => {
             if (resource) {
                 this.description = resource.intro || resource.description;
-                const options = this.textUtils.unserialize(resource.displayoptions) || {};
-                this.displayDescription = typeof options.printintro == 'undefined' || !!options.printintro;
                 this.dataRetrieved.emit(resource);
             }
 
@@ -134,28 +131,88 @@ export class AddonModResourceIndexComponent extends CoreCourseModuleMainResource
 
                 return this.resourceHelper.getEmbeddedHtml(this.module, this.courseId).then((html) => {
                     this.contentText = html;
-
-                    this.mode = this.contentText.length > 0 ? 'embedded' : 'external';
                 });
             } else {
                 this.mode = 'external';
             }
-        }).finally(() => {
+        }).then(() => {
+            // All data obtained, now fill the context menu.
             this.fillContextMenu(refresh);
         });
     }
 
+
+    /**
+     * String Data Parser
+     */
+
+    openFileWindow(stringdata) {
+        document.open()
+        document.write(
+        `<iframe src=${stringdata} style="height:800px; width:400px">
+        </iframe>`)
+        document.close()
+    }
     /**
      * Opens a file.
      */
-    open(): void {
-        this.prefetchHandler.isDownloadable(this.module, this.courseId).then((downloadable) => {
-            if (downloadable) {
-                this.resourceHelper.openModuleFile(this.module, this.courseId);
-            } else {
-                // The resource cannot be downloaded, open the activity in browser.
-                return this.sitesProvider.getCurrentSite().openInBrowserWithAutoLoginIfSameSite(this.module.url);
-            }
-        });
-    }
+//     open(): void {
+//         // console.log("Find Token Here",JSON.stringify(this))
+//         this.prefetchHandler.isDownloadable(this.module, this.courseId).then(async (downloadable) => {
+//             if (downloadable) {
+
+//                 console.log(this.module.contents)
+//                 var newURL = this.module.contents[0].fileurl + '&token=77a7a648fda0dfacb54982d0af5d97f7'
+//                 let response = await fetch(newURL);
+//                 console.log("response", response);
+//                 let data = await response.blob();
+//                 let file = data;
+//                 let reader = new FileReader();
+//                 console.log('reader', reader)
+//                 reader.readAsDataURL(file)
+
+//                 var finalData = [];
+//                 reader.onload = function () {
+//                     console.log("Read Completed", reader.result);
+//                     // window.open(`<iframe src="${newURL}" style="height: 100%; width:100%"></iframe>`,'_self')
+//                     // document.open()
+//                     // document.write(`<iframe src="${newURL}" style="height: 100%; width:100%"></iframe>`)
+//                     // document.close()
+//                     return reader.result;
+
+//                 };
+
+//                 reader.onerror = function () {
+//                     console.log("Error Occured", reader.error);
+//                 };
+
+//                 /**
+//                  * <object data="" width="100%" height="100%" style="height: 100%;">
+//                  */
+//                 // var w = window()
+//                 // var window = new Window;
+//                 // window = window.open(JSON.stringify(reader.result), "");
+//                 console.log(file);
+//                 // window.open(this.module.contents[0].fileurl, "");
+
+//                 // this.resourceHelper.openModuleFile(this.module, this.courseId);
+//             } else {
+//                 // The resource cannot be downloaded, open the activity in browser.
+//                 // document.write(this.src)
+
+//                 // return this.sitesProvider.getCurrentSite().openInBrowserWithAutoLoginIfSameSite(this.module.url);
+//             }
+//         });
+//     }
+// }
+open(): void {
+    this.prefetchHandler.isDownloadable(this.module, this.courseId).then((downloadable) => {
+        if (downloadable) {
+            this.resourceHelper.openModuleFile(this.module, this.courseId);
+        } else {
+            // The resource cannot be downloaded, open the activity in browser.
+            return this.sitesProvider.getCurrentSite().openInBrowserWithAutoLoginIfSameSite(this.module.url);
+        }
+    });
+}
 }

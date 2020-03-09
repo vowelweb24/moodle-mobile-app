@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ export class CoreTimeAgoPipe implements PipeTransform {
     /**
      * Turn a UNIX timestamp to "time ago".
      *
-     * @param timestamp The UNIX timestamp (without milliseconds).
-     * @return Formatted time.
+     * @param {number|string} timestamp The UNIX timestamp (without milliseconds).
+     * @return {string} Formatted time.
      */
     transform(timestamp: string | number): string {
         if (typeof timestamp == 'string') {

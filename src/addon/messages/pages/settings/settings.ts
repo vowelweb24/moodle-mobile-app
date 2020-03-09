@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
 
 import { Component, OnDestroy } from '@angular/core';
 import { IonicPage } from 'ionic-angular';
-import {
-    AddonMessagesProvider, AddonMessagesMessagePreferences, AddonMessagesMessagePreferencesNotification,
-    AddonMessagesMessagePreferencesNotificationProcessor
-} from '../../providers/messages';
+import { AddonMessagesProvider } from '../../providers/messages';
 import { CoreUserProvider } from '@core/user/providers/user';
 import { CoreAppProvider } from '@providers/app';
 import { CoreConfigProvider } from '@providers/config';
@@ -37,7 +34,7 @@ import { CoreConstants } from '@core/constants';
 export class AddonMessagesSettingsPage implements OnDestroy {
     protected updateTimeout: any;
 
-    preferences: AddonMessagesMessagePreferences;
+    preferences: any;
     preferencesLoaded: boolean;
     contactablePrivacy: number | boolean;
     advancedContactable = false; // Whether the site supports "advanced" contactable privacy.
@@ -81,9 +78,9 @@ export class AddonMessagesSettingsPage implements OnDestroy {
     /**
      * Fetches preference data.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
-    protected fetchPreferences(): Promise<void> {
+    protected fetchPreferences(): Promise<any> {
         return this.messagesProvider.getMessagePreferences().then((preferences) => {
             if (this.groupMessagingEnabled) {
                 // Simplify the preferences.
@@ -93,12 +90,11 @@ export class AddonMessagesSettingsPage implements OnDestroy {
                         return notification.preferencekey == AddonMessagesProvider.NOTIFICATION_PREFERENCES_KEY;
                     });
 
-                    component.notifications.forEach((notification) => {
-                        notification.processors.forEach(
-                                (processor: AddonMessagesMessagePreferencesNotificationProcessorFormatted) => {
+                    for (const notification of component.notifications) {
+                        for (const processor of notification.processors) {
                             processor.checked = processor.loggedin.checked || processor.loggedoff.checked;
-                        });
-                    });
+                        }
+                    }
                 }
             }
 
@@ -137,7 +133,7 @@ export class AddonMessagesSettingsPage implements OnDestroy {
     /**
      * Save the contactable privacy setting..
      *
-     * @param value The value to set.
+     * @param {number|boolean} value The value to set.
      */
     saveContactablePrivacy(value: number | boolean): void {
         if (this.contactablePrivacy == this.previousContactableValue) {
@@ -168,20 +164,18 @@ export class AddonMessagesSettingsPage implements OnDestroy {
     /**
      * Change the value of a certain preference.
      *
-     * @param notification Notification object.
-     * @param state State name, ['loggedin', 'loggedoff'].
-     * @param processor Notification processor.
+     * @param {any}    notification Notification object.
+     * @param {string} state        State name, ['loggedin', 'loggedoff'].
+     * @param {any}    processor    Notification processor.
      */
-    changePreference(notification: AddonMessagesMessagePreferencesNotificationFormatted, state: string,
-            processor: AddonMessagesMessagePreferencesNotificationProcessorFormatted): void {
-
+    changePreference(notification: any, state: string, processor: any): void {
         if (this.groupMessagingEnabled) {
             // Update both states at the same time.
             const valueArray = [],
                 promises = [];
             let value = 'none';
 
-            notification.processors.forEach((processor: AddonMessagesMessagePreferencesNotificationProcessorFormatted) => {
+            notification.processors.forEach((processor) => {
                 if (processor.checked) {
                     valueArray.push(processor.name);
                 }
@@ -244,7 +238,7 @@ export class AddonMessagesSettingsPage implements OnDestroy {
     /**
      * Refresh the list of preferences.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     refreshPreferences(refresher: any): void {
         this.messagesProvider.invalidateMessagePreferences().finally(() => {
@@ -274,17 +268,3 @@ export class AddonMessagesSettingsPage implements OnDestroy {
         }
     }
 }
-
-/**
- * Message preferences notification with some caclulated data.
- */
-type AddonMessagesMessagePreferencesNotificationFormatted = AddonMessagesMessagePreferencesNotification & {
-    updating?: boolean | {[state: string]: boolean}; // Calculated in the app. Whether the notification is being updated.
-};
-
-/**
- * Message preferences notification processor with some caclulated data.
- */
-type AddonMessagesMessagePreferencesNotificationProcessorFormatted = AddonMessagesMessagePreferencesNotificationProcessor & {
-    checked?: boolean; // Calculated in the app. Whether the processor is checked either for loggedin or loggedoff.
-};

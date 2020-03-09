@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,9 +27,6 @@ export class CoreQuestionBaseComponent {
     @Input() componentId: number; // ID of the component the question belongs to.
     @Input() attemptId: number; // Attempt ID.
     @Input() offlineEnabled?: boolean | string; // Whether the question can be answered in offline.
-    @Input() contextLevel?: string; // The context level.
-    @Input() contextInstanceId?: number; // The instance ID related to the context.
-    @Input() courseId?: number; // The course the question belongs to (if any).
     @Output() buttonClicked: EventEmitter<any>; // Should emit an event when a behaviour button is clicked.
     @Output() onAbort: EventEmitter<void>; // Should emit an event if the question should be aborted.
 
@@ -52,7 +49,7 @@ export class CoreQuestionBaseComponent {
     /**
      * Initialize a question component of type calculated or calculated simple.
      *
-     * @return Element containing the question HTML, void if the data is not valid.
+     * @return {void|HTMLElement} Element containing the question HTML, void if the data is not valid.
      */
     initCalculatedComponent(): void | HTMLElement {
         // Treat the input text first.
@@ -168,7 +165,7 @@ export class CoreQuestionBaseComponent {
     /**
      * Initialize the component and the question text.
      *
-     * @return Element containing the question HTML, void if the data is not valid.
+     * @return {void|HTMLElement} Element containing the question HTML, void if the data is not valid.
      */
     initComponent(): void | HTMLElement {
         if (!this.question) {
@@ -195,7 +192,7 @@ export class CoreQuestionBaseComponent {
     /**
      * Initialize a question component of type essay.
      *
-     * @return Element containing the question HTML, void if the data is not valid.
+     * @return {void|HTMLElement} Element containing the question HTML, void if the data is not valid.
      */
     initEssayComponent(): void | HTMLElement {
         const questionEl = this.initComponent();
@@ -237,8 +234,8 @@ export class CoreQuestionBaseComponent {
     /**
      * Initialize a question component that uses the original question text with some basic treatment.
      *
-     * @param contentSelector The selector to find the question content (text).
-     * @return Element containing the question HTML, void if the data is not valid.
+     * @param {string} contentSelector The selector to find the question content (text).
+     * @return {void|HTMLElement} Element containing the question HTML, void if the data is not valid.
      */
     initOriginalTextComponent(contentSelector: string): void | HTMLElement {
         if (!this.question) {
@@ -275,7 +272,7 @@ export class CoreQuestionBaseComponent {
     /**
      * Initialize a question component that has an input of type "text".
      *
-     * @return Element containing the question HTML, void if the data is not valid.
+     * @return {void|HTMLElement} Element containing the question HTML, void if the data is not valid.
      */
     initInputTextComponent(): void | HTMLElement {
         const questionEl = this.initComponent();
@@ -332,7 +329,7 @@ export class CoreQuestionBaseComponent {
     /**
      * Initialize a question component with a "match" behaviour.
      *
-     * @return Element containing the question HTML, void if the data is not valid.
+     * @return {void|HTMLElement} Element containing the question HTML, void if the data is not valid.
      */
     initMatchComponent(): void | HTMLElement {
         const questionEl = this.initComponent();
@@ -424,7 +421,7 @@ export class CoreQuestionBaseComponent {
     /**
      * Initialize a question component with a multiple choice (checkbox) or single choice (radio).
      *
-     * @return Element containing the question HTML, void if the data is not valid.
+     * @return {void|HTMLElement} Element containing the question HTML, void if the data is not valid.
      */
     initMultichoiceComponent(): void | HTMLElement {
         const questionEl = this.initComponent();

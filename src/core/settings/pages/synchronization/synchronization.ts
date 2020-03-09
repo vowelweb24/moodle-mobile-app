@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ export class CoreSettingsSynchronizationPage implements OnDestroy {
     /**
      * Syncrhonizes a site.
      *
-     * @param siteId Site ID.
+     * @param {string} siteId Site ID.
      */
     synchronize(siteId: string): void {
         this.settingsHelper.synchronizeSite(this.syncOnlyOnWifi, siteId).catch((error) => {
@@ -96,8 +96,8 @@ export class CoreSettingsSynchronizationPage implements OnDestroy {
     /**
      * Returns true if site is beeing synchronized.
      *
-     * @param siteId Site ID.
-     * @return True if site is beeing synchronized, false otherwise.
+     * @param {string} siteId Site ID.
+     * @return {boolean} True if site is beeing synchronized, false otherwise.
      */
     isSynchronizing(siteId: string): boolean {
         return !!this.settingsHelper.getSiteSyncPromise(siteId);

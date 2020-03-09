@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import { AddonModUrlIndexComponent } from '../components/index/index';
 import { CoreCourseModuleHandler, CoreCourseModuleHandlerData } from '@core/course/providers/module-delegate';
 import { CoreCourseProvider } from '@core/course/providers/course';
 import { CoreContentLinksHelperProvider } from '@core/contentlinks/providers/helper';
-import { AddonModUrlProvider, AddonModUrlUrl } from './url';
+import { AddonModUrlProvider } from './url';
 import { AddonModUrlHelperProvider } from './helper';
 import { CoreConstants } from '@core/constants';
 
@@ -50,7 +50,7 @@ export class AddonModUrlModuleHandler implements CoreCourseModuleHandler {
     /**
      * Check if the handler is enabled on a site level.
      *
-     * @return Whether or not the handler is enabled on a site level.
+     * @return {boolean} Whether or not the handler is enabled on a site level.
      */
     isEnabled(): boolean {
         return true;
@@ -59,10 +59,10 @@ export class AddonModUrlModuleHandler implements CoreCourseModuleHandler {
     /**
      * Get the data required to display the module in the course contents view.
      *
-     * @param module The module object.
-     * @param courseId The course ID.
-     * @param sectionId The section ID.
-     * @return Data to render the module.
+     * @param {any} module The module object.
+     * @param {number} courseId The course ID.
+     * @param {number} sectionId The section ID.
+     * @return {CoreCourseModuleHandlerData} Data to render the module.
      */
     getData(module: any, courseId: number, sectionId: number): CoreCourseModuleHandlerData {
         // tslint:disable: no-this-assignment
@@ -90,8 +90,7 @@ export class AddonModUrlModuleHandler implements CoreCourseModuleHandler {
                     if (handler.urlProvider.isGetUrlWSAvailable()) {
                         return handler.urlProvider.getUrl(courseId, module.id).catch(() => {
                             // Ignore errors.
-                            return undefined;
-                        }).then((url: AddonModUrlUrl) => {
+                        }).then((url) => {
                             const displayType = handler.urlProvider.getFinalDisplayType(url);
 
                             return displayType == CoreConstants.RESOURCELIB_DISPLAY_OPEN ||
@@ -141,9 +140,9 @@ export class AddonModUrlModuleHandler implements CoreCourseModuleHandler {
     /**
      * Returns if contents are loaded to show link button.
      *
-     * @param module The module object.
-     * @param courseId The course ID.
-     * @return Resolved when done.
+     * @param {any} module The module object.
+     * @param {number} courseId The course ID.
+     * @return {Promise<boolean>} Resolved when done.
      */
     protected hideLinkButton(module: any, courseId: number): Promise<boolean> {
         return this.courseProvider.loadModuleContents(module, courseId, undefined, false, false, undefined, this.modName)
@@ -159,9 +158,9 @@ export class AddonModUrlModuleHandler implements CoreCourseModuleHandler {
      * Get the component to render the module. This is needed to support singleactivity course format.
      * The component returned must implement CoreCourseModuleMainComponent.
      *
-     * @param course The course object.
-     * @param module The module object.
-     * @return The component to use, undefined if not found.
+     * @param {any} course The course object.
+     * @param {any} module The module object.
+     * @return {any} The component to use, undefined if not found.
      */
     getMainComponent(course: any, module: any): any {
         return AddonModUrlIndexComponent;
@@ -170,8 +169,8 @@ export class AddonModUrlModuleHandler implements CoreCourseModuleHandler {
     /**
      * Open the URL.
      *
-     * @param module The module object.
-     * @param courseId The course ID.
+     * @param {any} module The module object.
+     * @param {number} courseId The course ID.
      */
     protected openUrl(module: any, courseId: number): void {
         this.urlProvider.logView(module.instance, module.name).then(() => {

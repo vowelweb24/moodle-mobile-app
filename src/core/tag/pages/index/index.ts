@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ export class CoreTagIndexPage {
     /**
      * Fetch first page of tag index per area.
      *
-     * @return Resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
     fetchData(): Promise<any> {
         return this.tagProvider.getTagIndexPerArea(this.tagId, this.tagName, this.collectionId, this.areaId, this.fromContextId,
@@ -116,7 +116,7 @@ export class CoreTagIndexPage {
     /**
      * Refresh data.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     refreshData(refresher: any): void {
         this.tagProvider.invalidateTagIndexPerArea(this.tagId, this.tagName, this.collectionId, this.areaId, this.fromContextId,
@@ -130,7 +130,7 @@ export class CoreTagIndexPage {
     /**
      * Navigate to an index area.
      *
-     * @param area Area.
+     * @param {any} area Area.
      */
     openArea(area: any): void {
         this.selectedAreaId = area.id;

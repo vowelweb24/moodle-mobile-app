@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule, COMPILER_OPTIONS } from '@angular/core';
+import { NgModule, COMPILER_OPTIONS, NO_ERRORS_SCHEMA, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { IonicApp, IonicModule, Platform, Content, ScrollEvent, Config, Refresher } from 'ionic-angular';
 import { assert } from 'ionic-angular/util/util';
 import { HttpModule } from '@angular/http';
@@ -22,9 +22,10 @@ import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common
 import { JitCompilerFactory } from '@angular/platform-browser-dynamic';
 import { LocationStrategy } from '@angular/common';
 import { MockLocationStrategy } from '@angular/common/testing';
-
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { Diagnostic } from '@ionic-native/diagnostic/ngx';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 
 import { ScreenOrientation } from '@ionic-native/screen-orientation';
 
@@ -82,8 +83,7 @@ import { CoreCommentsModule } from '@core/comments/comments.module';
 import { CoreBlockModule } from '@core/block/block.module';
 import { CoreRatingModule } from '@core/rating/rating.module';
 import { CoreTagModule } from '@core/tag/tag.module';
-import { CoreFilterModule } from '@core/filter/filter.module';
-import { CoreH5PModule } from '@core/h5p/h5p.module';
+import { UserAgent } from '@ionic-native/user-agent/ngx';
 
 // Addon modules.
 import { AddonBadgesModule } from '@addon/badges/badges.module';
@@ -149,7 +149,6 @@ import { AddonRemoteThemesModule } from '@addon/remotethemes/remotethemes.module
 import { AddonQbehaviourModule } from '@addon/qbehaviour/qbehaviour.module';
 import { AddonQtypeModule } from '@addon/qtype/qtype.module';
 import { AddonStorageManagerModule } from '@addon/storagemanager/storagemanager.module';
-import { AddonFilterModule } from '@addon/filter/filter.module';
 
 // For translate loader. AoT requires an exported function for factories.
 export function createTranslateLoader(http: HttpClient): TranslateHttpLoader {
@@ -230,8 +229,6 @@ export const WP_PROVIDER: any = null;
         CoreRatingModule,
         CorePushNotificationsModule,
         CoreTagModule,
-        CoreFilterModule,
-        CoreH5PModule,
         AddonBadgesModule,
         AddonBlogModule,
         AddonCalendarModule,
@@ -294,7 +291,6 @@ export const WP_PROVIDER: any = null;
         AddonQbehaviourModule,
         AddonQtypeModule,
         AddonStorageManagerModule,
-        AddonFilterModule
     ],
     bootstrap: [IonicApp],
     entryComponents: [
@@ -329,6 +325,9 @@ export const WP_PROVIDER: any = null;
         CoreSyncProvider,
         CoreFileHelperProvider,
         CoreCustomURLSchemesProvider,
+        UserAgent,
+        Diagnostic,
+        AndroidPermissions,
         {
             provide: HTTP_INTERCEPTORS,
             useClass: CoreInterceptor,

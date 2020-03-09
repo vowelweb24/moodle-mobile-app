@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ export class AddonModDataSearchPage {
     /**
      * Displays Advanced Search Fields.
      *
-     * @return Generated HTML.
+     * @return {string}         Generated HTML.
      */
     protected renderAdvancedSearchFields(): string {
         this.jsData = {
@@ -130,8 +130,8 @@ export class AddonModDataSearchPage {
     /**
      * Retrieve the entered data in search in a form.
      *
-     * @param searchedData Array with the entered form values.
-     * @return Array with the answers.
+     * @param {any} searchedData Array with the entered form values.
+     * @return {any[]}          Array with the answers.
      */
     getSearchDataFromForm(searchedData: any): any[] {
         const advancedSearch = [];
@@ -172,7 +172,7 @@ export class AddonModDataSearchPage {
     /**
      * Close modal.
      *
-     * @param data Data to return to the page.
+     * @param {any} [data] Data to return to the page.
      */
     closeModal(data?: any): void {
         this.viewCtrl.dismiss(data);
@@ -181,7 +181,7 @@ export class AddonModDataSearchPage {
     /**
      * Toggles between advanced to normal search.
      *
-     * @param advanced True for advanced, false for basic.
+     * @param {boolean} advanced True for advanced, false for basic.
      */
     changeAdvanced(advanced: boolean): void {
         this.search.searchingAdvanced = advanced;
@@ -190,7 +190,7 @@ export class AddonModDataSearchPage {
     /**
      * Done editing.
      *
-     * @param e Event.
+     * @param {Event} e Event.
      */
     searchEntries(e: Event): void {
         e.preventDefault();

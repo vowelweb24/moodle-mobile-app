@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import { CoreEventsProvider } from '@providers/events';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreContentLinksDelegate } from '@core/contentlinks/providers/delegate';
 import { CoreUserProfileLinkHandler } from './providers/user-link-handler';
-import { CoreUserParticipantsCourseOptionHandler } from './providers/course-option-handler';
+// import { CoreUserParticipantsCourseOptionHandler } from './providers/course-option-handler';
 import { CoreUserParticipantsLinkHandler } from './providers/participants-link-handler';
 import { CoreCourseOptionsDelegate } from '@core/course/providers/options-delegate';
 import { CoreUserComponentsModule } from './components/components.module';
@@ -58,7 +58,7 @@ export const CORE_USER_PROVIDERS: any[] = [
         CoreUserSyncProvider,
         CoreUserProfileMailHandler,
         CoreUserProfileLinkHandler,
-        CoreUserParticipantsCourseOptionHandler,
+        // CoreUserParticipantsCourseOptionHandler,
         CoreUserParticipantsLinkHandler,
         CoreUserSyncCronHandler,
         CoreUserTagAreaHandler
@@ -68,12 +68,13 @@ export class CoreUserModule {
     constructor(userDelegate: CoreUserDelegate, userProfileMailHandler: CoreUserProfileMailHandler,
             eventsProvider: CoreEventsProvider, sitesProvider: CoreSitesProvider, userProvider: CoreUserProvider,
             contentLinksDelegate: CoreContentLinksDelegate, userLinkHandler: CoreUserProfileLinkHandler,
-            courseOptionHandler: CoreUserParticipantsCourseOptionHandler, linkHandler: CoreUserParticipantsLinkHandler,
+            // courseOptionHandler: CoreUserParticipantsCourseOptionHandler, 
+            linkHandler: CoreUserParticipantsLinkHandler,
             courseOptionsDelegate: CoreCourseOptionsDelegate, cronDelegate: CoreCronDelegate,
             syncHandler: CoreUserSyncCronHandler, tagAreaDelegate: CoreTagAreaDelegate, tagAreaHandler: CoreUserTagAreaHandler) {
 
         userDelegate.registerHandler(userProfileMailHandler);
-        courseOptionsDelegate.registerHandler(courseOptionHandler);
+        // courseOptionsDelegate.registerHandler(courseOptionHandler);
         contentLinksDelegate.registerHandler(userLinkHandler);
         contentLinksDelegate.registerHandler(linkHandler);
         cronDelegate.register(syncHandler);

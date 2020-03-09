@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@ export class AddonCompetencyHelperProvider {
     /**
      * Convenient helper to get the user profile image.
      *
-     * @param userId User Id
-     * @return User profile Image URL or true if default icon.
+     * @param  {number} userId User Id
+     * @return {Promise<any>}  User profile Image URL or true if default icon.
      */
     getProfile(userId: number): Promise<any> {
         if (!userId || userId == this.sitesProvider.getCurrentSiteUserId()) {
@@ -50,7 +50,8 @@ export class AddonCompetencyHelperProvider {
     /**
      * Get the review status name translated.
      *
-     * @param status
+     * @param {number} status
+     * @return {string}
      */
     getCompetencyStatusName(status: number): string {
         let statusTranslateName;
@@ -75,7 +76,8 @@ export class AddonCompetencyHelperProvider {
     /**
      * Get the status name translated.
      *
-     * @param status
+     * @param {number} status
+     * @return {string}
      */
     getPlanStatusName(status: number): string {
         let statusTranslateName;

@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -96,9 +96,7 @@ export class AddonModDataEntryPage implements OnDestroy {
      */
     ionViewDidLoad(): void {
         this.commentsEnabled = !this.commentsProvider.areCommentsDisabledInSite();
-        this.fetchEntryData().then(() => {
-            this.logView();
-        });
+        this.fetchEntryData();
 
         // Refresh data if this discussion is synchronized automatically.
         this.syncObserver = this.eventsProvider.on(AddonModDataSyncProvider.AUTO_SYNCED, (data) => {
@@ -131,9 +129,9 @@ export class AddonModDataEntryPage implements OnDestroy {
     /**
      * Fetch the entry data.
      *
-     * @param refresh Whether to refresh the current data or not.
-     * @param isPtr Whether is a pull to refresh action.
-     * @return Resolved when done.
+     * @param  {boolean} [refresh] Whether to refresh the current data or not.
+     * @param  {boolean} [isPtr] Whether is a pull to refresh action.
+     * @return {Promise<any>} Resolved when done.
      */
     protected fetchEntryData(refresh?: boolean, isPtr?: boolean): Promise<any> {
         this.isPullingToRefresh = isPtr;
@@ -192,8 +190,8 @@ export class AddonModDataEntryPage implements OnDestroy {
     /**
      * Go to selected entry without changing state.
      *
-     * @param offset Entry offset.
-     * @return Resolved when done.
+     * @param  {number} offset Entry offset.
+     * @return {Promise<any>} Resolved when done.
      */
     gotoEntry(offset: number): Promise<any> {
         this.offset = offset;
@@ -201,16 +199,14 @@ export class AddonModDataEntryPage implements OnDestroy {
         this.entry = null;
         this.entryLoaded = false;
 
-        return this.fetchEntryData().then(() => {
-            this.logView();
-        });
+        return this.fetchEntryData();
     }
 
     /**
      * Refresh all the data.
      *
-     * @param isPtr Whether is a pull to refresh action.
-     * @return Promise resolved when done.
+     * @param  {boolean} [isPtr] Whether is a pull to refresh action.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected refreshAllData(isPtr?: boolean): Promise<any> {
         const promises = [];
@@ -220,7 +216,6 @@ export class AddonModDataEntryPage implements OnDestroy {
             promises.push(this.dataProvider.invalidateEntryData(this.data.id, this.entryId));
             promises.push(this.groupsProvider.invalidateActivityGroupInfo(this.data.coursemodule));
             promises.push(this.dataProvider.invalidateEntriesData(this.data.id));
-            promises.push(this.dataProvider.invalidateFieldsData(this.data.id));
 
             if (this.data.comments && this.entry && this.entry.id > 0 && this.commentsEnabled && this.comments) {
                 // Refresh comments. Don't add it to promises because we don't want the comments fetch to block the entry fetch.
@@ -238,8 +233,8 @@ export class AddonModDataEntryPage implements OnDestroy {
     /**
      * Refresh the data.
      *
-     * @param refresher Refresher.
-     * @return Promise resolved when done.
+     * @param {any} [refresher] Refresher.
+     * @return {Promise<any>} Promise resolved when done.
      */
     refreshDatabase(refresher?: any): Promise<any> {
         if (this.entryLoaded) {
@@ -252,8 +247,8 @@ export class AddonModDataEntryPage implements OnDestroy {
     /**
      * Set group to see the database.
      *
-     * @param groupId Group identifier to set.
-     * @return Resolved when done.
+     * @param  {number}       groupId Group identifier to set.
+     * @return {Promise<any>}         Resolved when done.
      */
     setGroup(groupId: number): Promise<any> {
         this.selectedGroup = groupId;
@@ -262,15 +257,13 @@ export class AddonModDataEntryPage implements OnDestroy {
         this.entryId = null;
         this.entryLoaded = false;
 
-        return this.fetchEntryData().then(() => {
-            this.logView();
-        });
+        return this.fetchEntryData();
     }
 
     /**
      * Convenience function to fetch the entry and set next/previous entries.
      *
-     * @return Resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
     protected setEntryFromOffset(): Promise<any> {
         const emptyOffset = typeof this.offset != 'number';
@@ -367,21 +360,6 @@ export class AddonModDataEntryPage implements OnDestroy {
      */
     ratingUpdated(): void {
         this.dataProvider.invalidateEntryData(this.data.id, this.entryId);
-    }
-
-    /**
-     * Log viewing the activity.
-     *
-     * @return Promise resolved when done.
-     */
-    protected logView(): Promise<any> {
-        if (!this.data || !this.data.id) {
-            return Promise.resolve();
-        }
-
-        return this.dataProvider.logView(this.data.id, this.data.name).catch(() => {
-            // Ignore errors, the user could be offline.
-        });
     }
 
     /**

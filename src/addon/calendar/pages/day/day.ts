@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,20 +13,19 @@
 // limitations under the License.
 
 import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
-import { IonicPage, NavParams, NavController, PopoverController } from 'ionic-angular';
+import { IonicPage, NavParams, NavController } from 'ionic-angular';
 import { CoreAppProvider } from '@providers/app';
 import { CoreEventsProvider } from '@providers/events';
 import { CoreLocalNotificationsProvider } from '@providers/local-notifications';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreDomUtilsProvider } from '@providers/utils/dom';
 import { CoreTimeUtilsProvider } from '@providers/utils/time';
-import { AddonCalendarProvider, AddonCalendarCalendarEvent } from '../../providers/calendar';
+import { AddonCalendarProvider } from '../../providers/calendar';
 import { AddonCalendarOfflineProvider } from '../../providers/calendar-offline';
-import { AddonCalendarHelperProvider, AddonCalendarFilter } from '../../providers/helper';
+import { AddonCalendarHelperProvider } from '../../providers/helper';
 import { AddonCalendarSyncProvider } from '../../providers/calendar-sync';
 import { CoreCoursesProvider } from '@core/courses/providers/courses';
 import { CoreCoursesHelperProvider } from '@core/courses/providers/helper';
-import { AddonCalendarFilterPopoverComponent } from '../../components/filter/filter';
 import { Network } from '@ionic-native/network';
 import * as moment from 'moment';
 
@@ -46,7 +45,7 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     protected day: number;
     protected categories = {};
     protected events = []; // Events (both online and offline).
-    protected onlineEvents: AddonCalendarCalendarEvent[] = [];
+    protected onlineEvents = [];
     protected offlineEvents = {}; // Offline events.
     protected offlineEditedEventsIds = []; // IDs of events edited in offline.
     protected deletedEvents = []; // Events deleted in offline.
@@ -64,10 +63,11 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     protected manualSyncObserver: any;
     protected onlineObserver: any;
     protected obsDefaultTimeChange: any;
-    protected filterChangedObserver: any;
 
     periodName: string;
     filteredEvents = [];
+    courseId: number;
+    categoryId: number;
     canCreate = false;
     courses: any[];
     loaded = false;
@@ -76,16 +76,6 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     syncIcon: string;
     isCurrentDay: boolean;
     isPastDay: boolean;
-    filter: AddonCalendarFilter = {
-        filtered: false,
-        courseId: null,
-        categoryId: null,
-        course: true,
-        group: true,
-        site: true,
-        user: true,
-        category: true
-    };
 
     constructor(localNotificationsProvider: CoreLocalNotificationsProvider,
             navParams: NavParams,
@@ -102,23 +92,14 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
             private eventsProvider: CoreEventsProvider,
             private coursesProvider: CoreCoursesProvider,
             private coursesHelper: CoreCoursesHelperProvider,
-            private appProvider: CoreAppProvider,
-            private popoverCtrl: PopoverController) {
+            private appProvider: CoreAppProvider) {
 
         const now = new Date();
-
-        AddonCalendarProvider.ALL_TYPES.forEach((name) => {
-            this.filter[name] = navParams.get(name);
-            this.filter[name] = typeof this.filter[name] == 'undefined' ? true : this.filter[name];
-        });
-        this.filter.courseId = navParams.get('courseId');
-        this.filter.categoryId = navParams.get('categoryId');
-
-        this.filter.filtered = !!this.filter.courseId || AddonCalendarProvider.ALL_TYPES.some((name) => !this.filter[name]);
 
         this.year = navParams.get('year') || now.getFullYear();
         this.month = navParams.get('month') || (now.getMonth() + 1);
         this.day = navParams.get('day') || now.getDate();
+        this.courseId = navParams.get('courseId');
         this.currentSiteId = sitesProvider.getCurrentSiteId();
 
         if (localNotificationsProvider.isAvailable()) {
@@ -205,17 +186,6 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
             }
         }, this.currentSiteId);
 
-        this.filterChangedObserver = this.eventsProvider.on(AddonCalendarProvider.FILTER_CHANGED_EVENT, (data) => {
-            this.filter = data;
-
-            // Course viewed has changed, check if the user can create events for this course calendar.
-            this.calendarHelper.canEditEvents(this.filter['courseId']).then((canEdit) => {
-                this.canCreate = canEdit;
-            });
-
-            this.filterEvents();
-        });
-
         // Refresh online status when changes.
         this.onlineObserver = network.onchange().subscribe(() => {
             // Execute the callback in the Angular zone, so change detection doesn't stop working.
@@ -238,9 +208,9 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     /**
      * Fetch all the data required for the view.
      *
-     * @param sync Whether it should try to synchronize offline events.
-     * @param showErrors Whether to show sync errors to the user.
-     * @return Promise resolved when done.
+     * @param {boolean} [sync] Whether it should try to synchronize offline events.
+     * @param {boolean} [showErrors] Whether to show sync errors to the user.
+     * @return {Promise<any>} Promise resolved when done.
      */
     fetchData(sync?: boolean, showErrors?: boolean): Promise<any> {
 
@@ -253,8 +223,9 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
             const promises = [];
 
             // Load courses for the popover.
-            promises.push(this.coursesHelper.getCoursesForPopover(this.filter['courseId']).then((data) => {
+            promises.push(this.coursesHelper.getCoursesForPopover(this.courseId).then((data) => {
                 this.courses = data.courses;
+                this.categoryId = data.categoryId;
             }));
 
             // Get categories.
@@ -286,7 +257,7 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
             }));
 
             // Check if user can create events.
-            promises.push(this.calendarHelper.canEditEvents(this.filter['courseId']).then((canEdit) => {
+            promises.push(this.calendarHelper.canEditEvents(this.courseId).then((canEdit) => {
                 this.canCreate = canEdit;
             }));
 
@@ -309,14 +280,14 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     /**
      * Fetch the events for current day.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     fetchEvents(): Promise<any> {
         // Don't pass courseId and categoryId, we'll filter them locally.
         return this.calendarProvider.getDayEvents(this.year, this.month, this.day).catch((error) => {
             if (!this.appProvider.isOnline()) {
                 // Allow navigating to non-cached days in offline (behave as if using emergency cache).
-                return Promise.resolve({ events: <AddonCalendarCalendarEvent[]> [] });
+                return Promise.resolve({ events: [] });
             } else {
                 return Promise.reject(error);
             }
@@ -357,7 +328,7 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     /**
      * Merge online events with the offline events of that period.
      *
-     * @return Merged events.
+     * @return {any[]} Merged events.
      */
     protected mergeEvents(): any[] {
         this.hasOffline = false;
@@ -403,16 +374,22 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     }
 
     /**
-     * Filter events based on the filter popover.
+     * Filter events to only display events belonging to a certain course.
      */
     protected filterEvents(): void {
-        this.filteredEvents = this.calendarHelper.getFilteredEvents(this.events, this.filter, this.categories);
+        if (!this.courseId || this.courseId < 0) {
+            this.filteredEvents = this.events;
+        } else {
+            this.filteredEvents = this.events.filter((event) => {
+                return this.calendarHelper.shouldDisplayEvent(event, this.courseId, this.categoryId, this.categories);
+            });
+        }
     }
 
     /**
      * Sort events by timestart.
      *
-     * @param events List to sort.
+     * @param {any[]} events List to sort.
      */
     protected sortEvents(events: any[]): any[] {
         return events.sort((a, b) => {
@@ -427,10 +404,10 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     /**
      * Refresh the data.
      *
-     * @param refresher Refresher.
-     * @param done Function to call when done.
-     * @param showErrors Whether to show sync errors to the user.
-     * @return Promise resolved when done.
+     * @param {any} [refresher] Refresher.
+     * @param {Function} [done] Function to call when done.
+     * @param {boolean} [showErrors] Whether to show sync errors to the user.
+     * @return {Promise<any>} Promise resolved when done.
      */
     doRefresh(refresher?: any, done?: () => void, showErrors?: boolean): Promise<any> {
         if (this.loaded) {
@@ -446,10 +423,10 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     /**
      * Refresh the data.
      *
-     * @param sync Whether it should try to synchronize offline events.
-     * @param showErrors Whether to show sync errors to the user.
-     * @param afterChange Whether the refresh is done after an event has changed or has been synced.
-     * @return Promise resolved when done.
+     * @param {boolean} [sync] Whether it should try to synchronize offline events.
+     * @param {boolean} [showErrors] Whether to show sync errors to the user.
+     * @param {boolean} [afterChange] Whether the refresh is done after an event has changed or has been synced.
+     * @return {Promise<any>} Promise resolved when done.
      */
     refreshData(sync?: boolean, showErrors?: boolean, afterChange?: boolean): Promise<any> {
         this.syncIcon = 'spinner';
@@ -472,7 +449,7 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     /**
      * Load categories to be able to filter events.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected loadCategories(): Promise<any> {
         return this.coursesProvider.getCategories(0, true).then((cats) => {
@@ -490,8 +467,8 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     /**
      * Try to synchronize offline events.
      *
-     * @param showErrors Whether to show sync errors to the user.
-     * @return Promise resolved when done.
+     * @param {boolean} [showErrors] Whether to show sync errors to the user.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected sync(showErrors?: boolean): Promise<any> {
         return this.calendarSync.syncEvents().then((result) => {
@@ -518,7 +495,7 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     /**
      * Navigate to a particular event.
      *
-     * @param eventId Event to load.
+     * @param {number} eventId Event to load.
      */
     gotoEvent(eventId: number): void {
         if (eventId < 0) {
@@ -534,23 +511,28 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     /**
      * Show the context menu.
      *
-     * @param event Event.
+     * @param {MouseEvent} event Event.
      */
-    openFilter(event: MouseEvent): void {
-        const popover = this.popoverCtrl.create(AddonCalendarFilterPopoverComponent, {
-            courses: this.courses,
-            filter: this.filter
-        });
+    openCourseFilter(event: MouseEvent): void {
+        this.coursesHelper.selectCourse(event, this.courses, this.courseId).then((result) => {
+            if (typeof result.courseId != 'undefined') {
+                this.courseId = result.courseId > 0 ? result.courseId : undefined;
+                this.categoryId = result.courseId > 0 ? result.categoryId : undefined;
 
-        popover.present({
-            ev: event
+                // Course viewed has changed, check if the user can create events for this course calendar.
+                this.calendarHelper.canEditEvents(this.courseId).then((canEdit) => {
+                    this.canCreate = canEdit;
+                });
+
+                this.filterEvents();
+            }
         });
     }
 
     /**
      * Open page to create/edit an event.
      *
-     * @param eventId Event ID to edit.
+     * @param {number} [eventId] Event ID to edit.
      */
     openEdit(eventId?: number): void {
         const params: any = {};
@@ -562,8 +544,8 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
             params.timestamp = moment().year(this.year).month(this.month - 1).date(this.day).unix() * 1000;
         }
 
-        if (this.filter['courseId']) {
-            params.courseId = this.filter['courseId'];
+        if (this.courseId) {
+            params.courseId = this.courseId;
         }
 
         this.navCtrl.push('AddonCalendarEditEventPage', params);
@@ -676,9 +658,9 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
     /**
      * Find an event and mark it as deleted.
      *
-     * @param eventId Event ID.
-     * @param deleted Whether to mark it as deleted or not.
-     * @return Whether the event was found.
+     * @param {number} eventId Event ID.
+     * @param {boolean} deleted Whether to mark it as deleted or not.
+     * @return {boolean} Whether the event was found.
      */
     protected markAsDeleted(eventId: number, deleted: boolean): boolean {
         const event = this.onlineEvents.find((event) => {
@@ -696,8 +678,8 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
 
     /**
      * Returns if the event is in the past or not.
-     * @param event Event object.
-     * @return True if it's in the past.
+     * @param  {any}     event Event object.
+     * @return {boolean}       True if it's in the past.
      */
     isEventPast(event: any): boolean {
         return (event.timestart + event.timeduration) < this.currentTime;
@@ -715,7 +697,6 @@ export class AddonCalendarDayPage implements OnInit, OnDestroy {
         this.syncObserver && this.syncObserver.off();
         this.manualSyncObserver && this.manualSyncObserver.off();
         this.onlineObserver && this.onlineObserver.unsubscribe();
-        this.filterChangedObserver && this.filterChangedObserver.off();
         this.obsDefaultTimeChange && this.obsDefaultTimeChange.off();
     }
 }

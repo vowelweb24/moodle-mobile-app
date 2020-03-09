@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import { CoreConstants } from '@core/constants';
 })
 export class CoreCourseListModTypePage {
 
-    sections = [];
+    modules = [];
     title: string;
     loaded = false;
     downloadEnabled = false;
@@ -63,21 +63,23 @@ export class CoreCourseListModTypePage {
     /**
      * Fetches the data.
      *
-     * @return Resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
     protected fetchData(): Promise<any> {
         // Get all the modules in the course.
         return this.courseProvider.getSections(this.courseId, false, true).then((sections) => {
 
-            this.sections = sections.filter((section) => {
+            this.modules = [];
+
+            sections.forEach((section) => {
                 if (!section.modules) {
-                    return false;
+                    return;
                 }
 
-                section.modules = section.modules.filter((mod) => {
+                section.modules.forEach((mod) => {
                     if (mod.uservisible === false || !this.courseProvider.moduleHasView(mod)) {
                         // Ignore this module.
-                        return false;
+                        return;
                     }
 
                     if (this.modName === 'resources') {
@@ -88,18 +90,21 @@ export class CoreCourseListModTypePage {
                         }
 
                         if (this.archetypes[mod.modname] == CoreConstants.MOD_ARCHETYPE_RESOURCE) {
-                            return true;
+                            this.modules.push(mod);
                         }
 
                     } else if (mod.modname == this.modName) {
-                        return true;
+                        this.modules.push(mod);
                     }
                 });
-
-                return section.modules.length > 0;
             });
 
-            this.courseHelper.addHandlerDataForModules(this.sections, this.courseId);
+            // Get the handler data for the modules.
+            const fakeSection = {
+                visible: 1,
+                modules: this.modules
+            };
+            this.courseHelper.addHandlerDataForModules([fakeSection], this.courseId);
         }).catch((error) => {
             this.domUtils.showErrorModalDefault(error, 'Error getting data');
         });
@@ -108,7 +113,7 @@ export class CoreCourseListModTypePage {
     /**
      * Refresh the data.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     refreshData(refresher: any): void {
         this.courseProvider.invalidateSections(this.courseId).finally(() => {

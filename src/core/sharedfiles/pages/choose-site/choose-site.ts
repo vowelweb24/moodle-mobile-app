@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ export class CoreSharedFilesChooseSitePage implements OnInit {
     /**
      * Store the file in a certain site.
      *
-     * @param siteId Site ID.
+     * @param {string} siteId Site ID.
      */
     storeInSite(siteId: string): void {
         this.loaded = false;

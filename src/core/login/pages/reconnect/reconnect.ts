@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,8 +36,6 @@ export class CoreLoginReconnectPage {
     logoUrl: string;
     identityProviders: any[];
     site: any;
-    showForgottenPassword = true;
-    showSiteAvatar = false;
 
     protected infoSiteUrl: string;
     protected pageName: string;
@@ -46,13 +44,9 @@ export class CoreLoginReconnectPage {
     protected isLoggedOut: boolean;
     protected siteId: string;
 
-    constructor(private navCtrl: NavController,
-            navParams: NavParams,
-            fb: FormBuilder,
-            private appProvider: CoreAppProvider,
-            private sitesProvider: CoreSitesProvider,
-            private loginHelper: CoreLoginHelperProvider,
-            private domUtils: CoreDomUtilsProvider) {
+    constructor(private navCtrl: NavController, navParams: NavParams, fb: FormBuilder, private appProvider: CoreAppProvider,
+        private sitesProvider: CoreSitesProvider, private loginHelper: CoreLoginHelperProvider,
+        private domUtils: CoreDomUtilsProvider) {
 
         const currentSite = this.sitesProvider.getCurrentSite();
 
@@ -75,7 +69,6 @@ export class CoreLoginReconnectPage {
     ionViewDidLoad(): void {
         if (this.siteConfig) {
             this.identityProviders = this.loginHelper.getValidIdentityProviders(this.siteConfig);
-            this.showForgottenPassword = !this.loginHelper.isForgottenPasswordDisabled(this.siteConfig);
         }
 
         this.sitesProvider.getSite(this.siteId).then((site) => {
@@ -89,24 +82,16 @@ export class CoreLoginReconnectPage {
             this.siteUrl = site.infos.siteurl;
             this.siteName = site.getSiteName();
 
-            // Show logo instead of avatar if it's a fixed site.
-            this.showSiteAvatar = this.site.avatar && !this.loginHelper.getFixedSites();
+            // Check logoURL if user avatar is not set.
+            if (this.site.avatar.startsWith(site.infos.siteurl + '/theme/image.php')) {
+                this.site.avatar = false;
 
-            return site.getPublicConfig().then((config) => {
-                return this.sitesProvider.checkRequiredMinimumVersion(config).then(() => {
-                    // Check logoURL if user avatar is not set.
-                    if (this.site.avatar.startsWith(site.infos.siteurl + '/theme/image.php')) {
-                        this.showSiteAvatar = false;
-                        this.logoUrl = config.logourl || config.compactlogourl;
-                    }
-
-                    this.showForgottenPassword = !this.loginHelper.isForgottenPasswordDisabled(config);
+                return site.getPublicConfig().then((config) => {
+                    this.logoUrl = config.logourl || config.compactlogourl;
                 }).catch(() => {
-                    this.cancel();
+                    // Ignore errors.
                 });
-            }).catch(() => {
-                // Ignore errors.
-            });
+            }
         }).catch(() => {
             // Shouldn't happen. Just leave the view.
             this.cancel();
@@ -117,7 +102,7 @@ export class CoreLoginReconnectPage {
     /**
      * Cancel reconnect.
      *
-     * @param e Event.
+     * @param {Event} [e] Event.
      */
     cancel(e?: Event): void {
         if (e) {
@@ -131,7 +116,7 @@ export class CoreLoginReconnectPage {
     /**
      * Tries to authenticate the user.
      *
-     * @param e Event.
+     * @param {Event} e Event.
      */
     login(e: Event): void {
         e.preventDefault();
@@ -200,7 +185,7 @@ export class CoreLoginReconnectPage {
     /**
      * An OAuth button was clicked.
      *
-     * @param provider The provider that was clicked.
+     * @param {any} provider The provider that was clicked.
      */
     oauthClicked(provider: any): void {
         if (!this.loginHelper.openBrowserForOAuthLogin(this.siteUrl, provider, this.siteConfig.launchurl)) {

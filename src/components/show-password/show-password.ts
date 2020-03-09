@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ export class CoreShowPasswordComponent implements OnInit, AfterViewInit {
     /**
      * Toggle show/hide password.
      *
-     * @param event The mouse event.
+     * @param {Event} event The mouse event.
      */
     toggle(event: Event): void {
         event.preventDefault();

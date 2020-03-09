@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,22 +24,23 @@ import { CoreDelegate, CoreDelegateHandler } from '@classes/delegate';
 export interface CoreTagAreaHandler extends CoreDelegateHandler {
     /**
      * Component and item type separated by a slash. E.g. 'core/course_modules'.
+     * @type {string}
      */
     type: string;
 
     /**
      * Parses the rendered content of a tag index and returns the items.
      *
-     * @param content Rendered content.
-     * @return Area items (or promise resolved with the items).
+     * @param {string} content Rendered content.
+     * @return {any[]|Promise<any[]>} Area items (or promise resolved with the items).
      */
     parseContent(content: string): any[] | Promise<any[]>;
 
     /**
      * Get the component to use to display items.
      *
-     * @param injector Injector.
-     * @return The component (or promise resolved with component) to use, undefined if not found.
+     * @param {Injector} injector Injector.
+     * @return {any|Promise<any>} The component (or promise resolved with component) to use, undefined if not found.
      */
     getComponent(injector: Injector): any | Promise<any>;
 }
@@ -59,9 +60,9 @@ export class CoreTagAreaDelegate extends CoreDelegate {
     /**
      * Returns the display name string for this area.
      *
-     * @param component Component name.
-     * @param itemType Item type.
-     * @return String key.
+     * @param {string} component Component name.
+     * @param {string} itemType Item type.
+     * @return {string} String key.
      */
     getDisplayNameKey(component: string, itemType: string): string {
         return (component == 'core' ? 'core.tag' : 'addon.' + component) + '.tagarea_' + itemType;
@@ -70,10 +71,10 @@ export class CoreTagAreaDelegate extends CoreDelegate {
     /**
      * Parses the rendered content of a tag index and returns the items.
      *
-     * @param component Component name.
-     * @param itemType Item type.
-     * @param content Rendered content.
-     * @return Promise resolved with the area items, or undefined if not found.
+     * @param {string} component Component name.
+     * @param {string} itemType Item type.
+     * @param {string} content Rendered content.
+     * @return {Promise<any[]>} Promise resolved with the area items, or undefined if not found.
      */
     parseContent(component: string, itemType: string, content: string): Promise<any[]> {
         const type = component + '/' + itemType;
@@ -84,10 +85,10 @@ export class CoreTagAreaDelegate extends CoreDelegate {
     /**
      * Get the component to use to display an area item.
      *
-     * @param component Component name.
-     * @param itemType Item type.
-     * @param injector Injector.
-     * @return The component (or promise resolved with component) to use, undefined if not found.
+     * @param {string} component Component name.
+     * @param {string} itemType Item type.
+     * @param {Injector} injector Injector.
+     * @return {Promise<any>} The component (or promise resolved with component) to use, undefined if not found.
      */
     getComponent(component: string, itemType: string, injector: Injector): Promise<any> {
         const type = component + '/' + itemType;

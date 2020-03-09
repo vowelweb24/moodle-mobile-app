@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ import { Network } from '@ionic-native/network';
 import { AddonMessagesProvider } from './providers/messages';
 import { AddonMessagesOfflineProvider } from './providers/messages-offline';
 import { AddonMessagesSyncProvider } from './providers/sync';
-import { AddonMessagesMainMenuHandler } from './providers/mainmenu-handler';
 import { CoreMainMenuDelegate } from '@core/mainmenu/providers/delegate';
 import { CoreContentLinksDelegate } from '@core/contentlinks/providers/delegate';
 import { CoreUserDelegate } from '@core/user/providers/user-delegate';
@@ -56,7 +55,6 @@ export const ADDON_MESSAGES_PROVIDERS: any[] = [
         AddonMessagesProvider,
         AddonMessagesOfflineProvider,
         AddonMessagesSyncProvider,
-        AddonMessagesMainMenuHandler,
         AddonMessagesSendMessageUserHandler,
         AddonMessagesAddContactUserHandler,
         AddonMessagesBlockContactUserHandler,
@@ -69,7 +67,7 @@ export const ADDON_MESSAGES_PROVIDERS: any[] = [
     ]
 })
 export class AddonMessagesModule {
-    constructor(mainMenuDelegate: CoreMainMenuDelegate, mainmenuHandler: AddonMessagesMainMenuHandler,
+    constructor(mainMenuDelegate: CoreMainMenuDelegate, 
             contentLinksDelegate: CoreContentLinksDelegate, indexLinkHandler: AddonMessagesIndexLinkHandler,
             discussionLinkHandler: AddonMessagesDiscussionLinkHandler, sendMessageHandler: AddonMessagesSendMessageUserHandler,
             userDelegate: CoreUserDelegate, cronDelegate: CoreCronDelegate, syncHandler: AddonMessagesSyncCronHandler,
@@ -81,7 +79,6 @@ export class AddonMessagesModule {
             addContactHandler: AddonMessagesAddContactUserHandler, blockContactHandler: AddonMessagesBlockContactUserHandler,
             contactRequestLinkHandler: AddonMessagesContactRequestLinkHandler, pushClickHandler: AddonMessagesPushClickHandler) {
         // Register handlers.
-        mainMenuDelegate.registerHandler(mainmenuHandler);
         contentLinksDelegate.registerHandler(indexLinkHandler);
         contentLinksDelegate.registerHandler(discussionLinkHandler);
         contentLinksDelegate.registerHandler(contactRequestLinkHandler);
@@ -89,7 +86,6 @@ export class AddonMessagesModule {
         userDelegate.registerHandler(addContactHandler);
         userDelegate.registerHandler(blockContactHandler);
         cronDelegate.register(syncHandler);
-        cronDelegate.register(mainmenuHandler);
         settingsDelegate.registerHandler(settingsHandler);
         pushNotificationsDelegate.registerClickHandler(pushClickHandler);
 

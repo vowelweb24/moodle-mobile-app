@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ export class CoreTagHelperProvider {
     /**
      * Parses the rendered content of the "core_tag/tagfeed" web template and returns the items.
      *
-     * @param content Rendered content.
-     * @return Area items.
+     * @param {string} content Rendered content.
+     * @return {any[]} Area items.
      */
     parseFeedContent(content: string): any[] {
         const items = [];

@@ -35,7 +35,6 @@ ion-app.app-root core-ion-tabs {
             width: $core-sidetab-size;
             height: 100%;
             flex-direction: column;
-            @include border-end(0.55px, solid, rgba(0, 0, 0, 0.3));
             .tab-button {
                 width: 100%;
                 .tab-badge.badge {
@@ -61,8 +60,7 @@ ion-app.app-root core-ion-tabs {
             }
         }
 
-        ion-content:not(.has-footer) > .scroll-content,
-        ion-content:not(.has-footer) > .fixed-content {
+        .scroll-content, .fixed-content {
             margin-bottom: 0 !important;
         }
     }

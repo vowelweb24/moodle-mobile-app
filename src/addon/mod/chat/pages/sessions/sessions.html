@@ -28,9 +28,9 @@
                     <p *ngIf="session.duration">{{ session.duration | coreDuration }}</p>
                 </ion-item>
                 <ion-card-content>
-                    <ion-item *ngFor="let user of session.sessionusers">
+                    <p *ngFor="let user of session.sessionusers">
                         {{ user.userfullname }} <span *ngIf="user.messagecount">({{ user.messagecount }})</span>
-                    </ion-item>
+                    </p>
                 </ion-card-content>
                 <div *ngIf="session.sessionusers.length < session.allsessionusers.length">
                     <button ion-button clear (click)="showMoreUsers(session, $event)">

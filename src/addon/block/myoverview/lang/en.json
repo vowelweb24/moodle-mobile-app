@@ -1,6 +1,5 @@
 {
     "all": "All (except removed from view)",
-    "allincludinghidden": "All",
     "favourites": "Starred",
     "future": "Future",
     "hiddencourses": "Removed from view",
@@ -9,6 +8,6 @@
     "morecourses": "More courses",
     "nocourses": "No courses",
     "past": "Past",
-    "pluginname": "Course overview",
+    "pluginname": "My Courses",
     "title": "Course name"
 }

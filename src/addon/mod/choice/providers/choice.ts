@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import { CoreFilepoolProvider } from '@providers/filepool';
 import { CoreCourseLogHelperProvider } from '@core/course/providers/log-helper';
 import { AddonModChoiceOfflineProvider } from './offline';
 import { CoreSite, CoreSiteWSPreSets } from '@classes/site';
-import { CoreWSExternalWarning, CoreWSExternalFile } from '@providers/ws';
 
 /**
  * Service that provides some features for choices.
@@ -49,9 +48,9 @@ export class AddonModChoiceProvider {
      *     - they're published after the choice is closed and it's closed, OR
      *     - they're published after answering and the user has answered.
      *
-     * @param choice Choice to check.
-     * @param hasAnswered True if user has answered the choice, false otherwise.
-     * @return True if the students can see the results.
+     * @param  {any}     choice      Choice to check.
+     * @param  {boolean} hasAnswered True if user has answered the choice, false otherwise.
+     * @return {boolean} True if the students can see the results.
      */
     canStudentSeeResults(choice: any, hasAnswered: boolean): boolean {
         const now = new Date().getTime();
@@ -65,12 +64,12 @@ export class AddonModChoiceProvider {
     /**
      * Delete responses from a choice.
      *
-     * @param choiceId Choice ID.
-     * @param name Choice name.
-     * @param courseId Course ID the choice belongs to.
-     * @param responses IDs of the answers. If not defined, delete all the answers of the current user.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with boolean: true if response was sent to server, false if stored in device.
+     * @param  {number}   choiceId    Choice ID.
+     * @param  {string}   name        Choice name.
+     * @param  {number}   courseId    Course ID the choice belongs to.
+     * @param  {number[]} [responses] IDs of the answers. If not defined, delete all the answers of the current user.
+     * @param  {string}   [siteId]    Site ID. If not defined, current site.
+     * @return {Promise<boolean>} Promise resolved with boolean: true if response was sent to server, false if stored in device.
      */
     deleteResponses(choiceId: number, name: string, courseId: number, responses?: number[], siteId?: string): Promise<boolean> {
         siteId = siteId || this.sitesProvider.getCurrentSiteId();
@@ -107,10 +106,10 @@ export class AddonModChoiceProvider {
     /**
      * Delete responses from a choice. It will fail if offline or cannot connect.
      *
-     * @param choiceId Choice ID.
-     * @param responses IDs of the answers. If not defined, delete all the answers of the current user.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when responses are successfully deleted.
+     * @param  {number}   choiceId    Choice ID.
+     * @param  {number[]} [responses] IDs of the answers. If not defined, delete all the answers of the current user.
+     * @param  {string}   [siteId]    Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resolved when responses are successfully deleted.
      */
     deleteResponsesOnline(choiceId: number, responses?: number[], siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -119,9 +118,7 @@ export class AddonModChoiceProvider {
                 responses: responses
             };
 
-            return site.write('mod_choice_delete_choice_responses', params)
-                    .then((response: AddonModChoiceDeleteChoiceResponsesResult) => {
-
+            return site.write('mod_choice_delete_choice_responses', params).then((response) => {
                 // Other errors ocurring.
                 if (!response || response.status === false) {
                     return Promise.reject(this.utils.createFakeWSError(''));
@@ -143,8 +140,8 @@ export class AddonModChoiceProvider {
     /**
      * Get cache key for choice data WS calls.
      *
-     * @param courseId Course ID.
-     * @return Cache key.
+     * @param  {number} courseId Course ID.
+     * @return {string} Cache key.
      */
     protected getChoiceDataCacheKey(courseId: number): string {
         return this.ROOT_CACHE_KEY + 'choice:' + courseId;
@@ -153,8 +150,8 @@ export class AddonModChoiceProvider {
     /**
      * Get cache key for choice options WS calls.
      *
-     * @param choiceId Choice ID.
-     * @return Cache key.
+     * @param  {number} choiceId Choice ID.
+     * @return {string} Cache key.
      */
     protected getChoiceOptionsCacheKey(choiceId: number): string {
         return this.ROOT_CACHE_KEY + 'options:' + choiceId;
@@ -163,8 +160,8 @@ export class AddonModChoiceProvider {
     /**
      * Get cache key for choice results WS calls.
      *
-     * @param choiceId Choice ID.
-     * @return Cache key.
+     * @param  {number} choiceId Choice ID.
+     * @return {string} Cache key.
      */
     protected getChoiceResultsCacheKey(choiceId: number): string {
         return this.ROOT_CACHE_KEY + 'results:' + choiceId;
@@ -173,16 +170,16 @@ export class AddonModChoiceProvider {
     /**
      * Get a choice with key=value. If more than one is found, only the first will be returned.
      *
-     * @param siteId Site ID.
-     * @param courseId Course ID.
-     * @param key Name of the property to check.
-     * @param value Value to search.
-     * @param forceCache True to always get the value from cache, false otherwise. Default false.
-     * @param ignoreCache True if it should ignore cached data (it will always fail in offline or server down).
-     * @return Promise resolved when the choice is retrieved.
+     * @param  {string}  siteId             Site ID.
+     * @param  {number}  courseId           Course ID.
+     * @param  {string}  key                Name of the property to check.
+     * @param  {any}     value              Value to search.
+     * @param  {boolean} [forceCache] True to always get the value from cache, false otherwise. Default false.
+     * @param {boolean} [ignoreCache] True if it should ignore cached data (it will always fail in offline or server down).
+     * @return {Promise<any>} Promise resolved when the choice is retrieved.
      */
     protected getChoiceByDataKey(siteId: string, courseId: number, key: string, value: any, forceCache?: boolean,
-            ignoreCache?: boolean): Promise<AddonModChoiceChoice> {
+            ignoreCache?: boolean): Promise<any> {
 
         return this.sitesProvider.getSite(siteId).then((site) => {
             const params = {
@@ -201,9 +198,7 @@ export class AddonModChoiceProvider {
                 preSets.emergencyCache = false;
             }
 
-            return site.read('mod_choice_get_choices_by_courses', params, preSets)
-                    .then((response: AddonModChoiceGetChoicesByCoursesResult): any => {
-
+            return site.read('mod_choice_get_choices_by_courses', params, preSets).then((response) => {
                 if (response && response.choices) {
                     const currentChoice = response.choices.find((choice) => choice[key] == value);
                     if (currentChoice) {
@@ -219,42 +214,40 @@ export class AddonModChoiceProvider {
     /**
      * Get a choice by course module ID.
      *
-     * @param courseId Course ID.
-     * @param cmId Course module ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @param forceCache True to always get the value from cache, false otherwise. Default false.
-     * @param ignoreCache True if it should ignore cached data (it will always fail in offline or server down).
-     * @return Promise resolved when the choice is retrieved.
+     * @param  {number}  courseId           Course ID.
+     * @param  {number}  cmId               Course module ID.
+     * @param  {string}  [siteId]           Site ID. If not defined, current site.
+     * @param  {boolean} [forceCache] True to always get the value from cache, false otherwise. Default false.
+     * @param {boolean} [ignoreCache] True if it should ignore cached data (it will always fail in offline or server down).
+     * @return {Promise<any>} Promise resolved when the choice is retrieved.
      */
-    getChoice(courseId: number, cmId: number, siteId?: string, forceCache?: boolean, ignoreCache?: boolean)
-            : Promise<AddonModChoiceChoice> {
+    getChoice(courseId: number, cmId: number, siteId?: string, forceCache?: boolean, ignoreCache?: boolean): Promise<any> {
         return this.getChoiceByDataKey(siteId, courseId, 'coursemodule', cmId, forceCache, ignoreCache);
     }
 
     /**
      * Get a choice by ID.
      *
-     * @param courseId Course ID.
-     * @param choiceId Choice ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @param forceCache True to always get the value from cache, false otherwise. Default false.
-     * @param ignoreCache True if it should ignore cached data (it will always fail in offline or server down).
-     * @return Promise resolved when the choice is retrieved.
+     * @param  {number}  courseId           Course ID.
+     * @param  {number}  choiceId           Choice ID.
+     * @param  {string}  [siteId]           Site ID. If not defined, current site.
+     * @param  {boolean} [forceCache] True to always get the value from cache, false otherwise. Default false.
+     * @param {boolean} [ignoreCache] True if it should ignore cached data (it will always fail in offline or server down).
+     * @return {Promise<any>} Promise resolved when the choice is retrieved.
      */
-    getChoiceById(courseId: number, choiceId: number, siteId?: string, forceCache?: boolean, ignoreCache?: boolean)
-            : Promise<AddonModChoiceChoice> {
+    getChoiceById(courseId: number, choiceId: number, siteId?: string, forceCache?: boolean, ignoreCache?: boolean): Promise<any> {
         return this.getChoiceByDataKey(siteId, courseId, 'id', choiceId, forceCache, ignoreCache);
     }
 
     /**
      * Get choice options.
      *
-     * @param choiceId Choice ID.
-     * @param ignoreCache True if it should ignore cached data (it will always fail in offline or server down).
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with choice options.
+     * @param {number} choiceId Choice ID.
+     * @param {boolean} [ignoreCache] True if it should ignore cached data (it will always fail in offline or server down).
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resolved with choice options.
      */
-    getOptions(choiceId: number, ignoreCache?: boolean, siteId?: string): Promise<AddonModChoiceOption[]> {
+    getOptions(choiceId: number, ignoreCache?: boolean, siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
             const params = {
                 choiceid: choiceId
@@ -269,9 +262,7 @@ export class AddonModChoiceProvider {
                 preSets.emergencyCache = false;
             }
 
-            return site.read('mod_choice_get_choice_options', params, preSets)
-                    .then((response: AddonModChoiceGetChoiceOptionsResult): any => {
-
+            return site.read('mod_choice_get_choice_options', params, preSets).then((response) => {
                 if (response.options) {
                     return response.options;
                 }
@@ -284,12 +275,12 @@ export class AddonModChoiceProvider {
     /**
      * Get choice results.
      *
-     * @param choiceId Choice ID.
-     * @param ignoreCache True if it should ignore cached data (it will always fail in offline or server down).
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with choice results.
+     * @param {number} choiceId Choice ID.
+     * @param {boolean} [ignoreCache] True if it should ignore cached data (it will always fail in offline or server down).
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resolved with choice results.
      */
-    getResults(choiceId: number, ignoreCache?: boolean, siteId?: string): Promise<AddonModChoiceResult[]> {
+    getResults(choiceId: number, ignoreCache?: boolean, siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
             const params = {
                 choiceid: choiceId
@@ -303,9 +294,7 @@ export class AddonModChoiceProvider {
                 preSets.emergencyCache = false;
             }
 
-            return site.read('mod_choice_get_choice_results', params, preSets)
-                    .then((response: AddonModChoiceGetChoiceResults): any => {
-
+            return site.read('mod_choice_get_choice_results', params, preSets).then((response) => {
                 if (response.options) {
                     return response.options;
                 }
@@ -318,9 +307,9 @@ export class AddonModChoiceProvider {
     /**
      * Invalidate choice data.
      *
-     * @param courseId Course ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the data is invalidated.
+     * @param  {number} courseId Course ID.
+     * @param  {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resolved when the data is invalidated.
      */
     invalidateChoiceData(courseId: number, siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(null).then((site) => {
@@ -331,10 +320,10 @@ export class AddonModChoiceProvider {
     /**
      * Invalidate the prefetched content.
      *
-     * @param moduleId The module ID.
-     * @param courseId Course ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when data is invalidated.
+     * @param  {number} moduleId The module ID.
+     * @param  {number} courseId Course ID.
+     * @param  {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resolved when data is invalidated.
      */
     invalidateContent(moduleId: number, courseId: number, siteId?: string): Promise<any> {
         siteId = siteId || this.sitesProvider.getCurrentSiteId();
@@ -357,9 +346,9 @@ export class AddonModChoiceProvider {
     /**
      * Invalidate choice options.
      *
-     * @param choiceId Choice ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the data is invalidated.
+     * @param  {number} choiceId Choice ID.
+     * @param  {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resolved when the data is invalidated.
      */
     invalidateOptions(choiceId: number, siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -370,9 +359,9 @@ export class AddonModChoiceProvider {
    /**
     * Invalidate choice results.
     *
-    * @param choiceId Choice ID.
-    * @param siteId Site ID. If not defined, current site.
-    * @return Promise resolved when the data is invalidated.
+    * @param  {number} choiceId Choice ID.
+    * @param  {string} [siteId] Site ID. If not defined, current site.
+    * @return {Promise<any>} Promise resolved when the data is invalidated.
     */
    invalidateResults(choiceId: number, siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -383,10 +372,10 @@ export class AddonModChoiceProvider {
     /**
      * Report the choice as being viewed.
      *
-     * @param id Choice ID.
-     * @param name Name of the choice.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the WS call is successful.
+     * @param  {string} id Choice ID.
+     * @param {string} [name] Name of the choice.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>}  Promise resolved when the WS call is successful.
      */
     logView(id: number, name?: string, siteId?: string): Promise<any> {
         const params = {
@@ -400,12 +389,12 @@ export class AddonModChoiceProvider {
     /**
      * Send a response to a choice to Moodle.
      *
-     * @param choiceId Choice ID.
-     * @param name Choice name.
-     * @param courseId Course ID the choice belongs to.
-     * @param responses IDs of selected options.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with boolean: true if response was sent to server, false if stored in device.
+     * @param  {number}   choiceId  Choice ID.
+     * @param  {string}   name      Choice name.
+     * @param  {number}   courseId  Course ID the choice belongs to.
+     * @param  {number[]} responses IDs of selected options.
+     * @param  {string}   [siteId]  Site ID. If not defined, current site.
+     * @return {Promise<boolean>} Promise resolved with boolean: true if response was sent to server, false if stored in device.
      */
     submitResponse(choiceId: number, name: string, courseId: number, responses: number[], siteId?: string): Promise<boolean> {
         siteId = siteId || this.sitesProvider.getCurrentSiteId();
@@ -441,10 +430,10 @@ export class AddonModChoiceProvider {
     /**
      * Send a response to a choice to Moodle. It will fail if offline or cannot connect.
      *
-     * @param choiceId Choice ID.
-     * @param responses IDs of selected options.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when responses are successfully submitted.
+     * @param  {number}   choiceId  Choice ID.
+     * @param  {number[]} responses IDs of selected options.
+     * @param  {string}   [siteId]  Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resolved when responses are successfully submitted.
      */
     submitResponseOnline(choiceId: number, responses: number[], siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -467,96 +456,3 @@ export class AddonModChoiceProvider {
         });
     }
 }
-
-/**
- * Choice returned by mod_choice_get_choices_by_courses.
- */
-export type AddonModChoiceChoice = {
-    id: number; // Choice instance id.
-    coursemodule: number; // Course module id.
-    course: number; // Course id.
-    name: string; // Choice name.
-    intro: string; // The choice intro.
-    introformat: number; // Intro format (1 = HTML, 0 = MOODLE, 2 = PLAIN or 4 = MARKDOWN).
-    introfiles?: CoreWSExternalFile[]; // @since 3.2.
-    publish?: boolean; // If choice is published.
-    showresults?: number; // 0 never, 1 after answer, 2 after close, 3 always.
-    display?: number; // Display mode (vertical, horizontal).
-    allowupdate?: boolean; // Allow update.
-    allowmultiple?: boolean; // Allow multiple choices.
-    showunanswered?: boolean; // Show users who not answered yet.
-    includeinactive?: boolean; // Include inactive users.
-    limitanswers?: boolean; // Limit unswers.
-    timeopen?: number; // Date of opening validity.
-    timeclose?: number; // Date of closing validity.
-    showpreview?: boolean; // Show preview before timeopen.
-    timemodified?: number; // Time of last modification.
-    completionsubmit?: boolean; // Completion on user submission.
-    section?: number; // Course section id.
-    visible?: boolean; // Visible.
-    groupmode?: number; // Group mode.
-    groupingid?: number; // Group id.
-};
-
-/**
- * Option returned by mod_choice_get_choice_options.
- */
-export type AddonModChoiceOption = {
-    id: number; // Option id.
-    text: string; // Text of the choice.
-    maxanswers: number; // Maximum number of answers.
-    displaylayout: boolean; // True for orizontal, otherwise vertical.
-    countanswers: number; // Number of answers.
-    checked: boolean; // We already answered.
-    disabled: boolean; // Option disabled.
-};
-
-/**
- * Result returned by mod_choice_get_choice_results.
- */
-export type AddonModChoiceResult = {
-    id: number; // Choice instance id.
-    text: string; // Text of the choice.
-    maxanswer: number; // Maximum number of answers.
-    userresponses: {
-        userid: number; // User id.
-        fullname: string; // User full name.
-        profileimageurl: string; // Profile user image url.
-        answerid?: number; // Answer id.
-        timemodified?: number; // Time of modification.
-    }[];
-    numberofuser: number; // Number of users answers.
-    percentageamount: number; // Percentage of users answers.
-};
-
-/**
- * Result of WS mod_choice_get_choices_by_courses.
- */
-export type AddonModChoiceGetChoicesByCoursesResult = {
-    choices: AddonModChoiceChoice[];
-    warnings?: CoreWSExternalWarning[];
-};
-
-/**
- * Result of WS mod_choice_get_choice_options.
- */
-export type AddonModChoiceGetChoiceOptionsResult = {
-    options: AddonModChoiceOption[]; // Options.
-    warnings?: CoreWSExternalWarning[];
-};
-
-/**
- * Result of WS mod_choice_get_choice_results.
- */
-export type AddonModChoiceGetChoiceResults = {
-    options: AddonModChoiceResult[];
-    warnings?: CoreWSExternalWarning[];
-};
-
-/**
- * Result of WS mod_choice_delete_choice_responses.
- */
-export type AddonModChoiceDeleteChoiceResponsesResult = {
-    status: boolean; // Status, true if everything went right.
-    warnings?: CoreWSExternalWarning[];
-};

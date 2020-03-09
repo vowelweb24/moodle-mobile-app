@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import { CoreDelegate, CoreDelegateHandler } from '@classes/delegate';
 export interface CoreCourseModuleHandler extends CoreDelegateHandler {
     /**
      * Name of the module. It should match the "modname" of the module returned in core_course_get_contents.
+     * @type {string}
      */
     modName: string;
 
@@ -36,29 +37,29 @@ export interface CoreCourseModuleHandler extends CoreDelegateHandler {
      * List of supported features. The keys should be the name of the feature.
      * This is to replicate the "plugin_supports" function of Moodle.
      * If you need some dynamic checks please implement the supportsFeature function.
+     * @type {{[name: string]: any}}
      */
     supportedFeatures?: {[name: string]: any};
 
     /**
      * Get the data required to display the module in the course contents view.
      *
-     * @param module The module object.
-     * @param courseId The course ID.
-     * @param sectionId The section ID.
-     * @param forCoursePage Whether the data will be used to render the course page.
-     * @return Data to render the module.
+     * @param {any} module The module object.
+     * @param {number} courseId The course ID.
+     * @param {number} sectionId The section ID.
+     * @return {CoreCourseModuleHandlerData} Data to render the module.
      */
-    getData(module: any, courseId: number, sectionId: number, forCoursePage: boolean): CoreCourseModuleHandlerData;
+    getData(module: any, courseId: number, sectionId: number): CoreCourseModuleHandlerData;
 
     /**
      * Get the component to render the module. This is needed to support singleactivity course format.
      * The component returned must implement CoreCourseModuleMainComponent.
      * It's recommended to return the class of the component, but you can also return an instance of the component.
      *
-     * @param injector Injector.
-     * @param course The course object.
-     * @param module The module object.
-     * @return The component (or promise resolved with component) to use, undefined if not found.
+     * @param {Injector} injector Injector.
+     * @param {any} course The course object.
+     * @param {any} module The module object.
+     * @return {any|Promise<any>} The component (or promise resolved with component) to use, undefined if not found.
      */
     getMainComponent(injector: Injector, course: any, module: any): any | Promise<any>;
 
@@ -66,14 +67,14 @@ export interface CoreCourseModuleHandler extends CoreDelegateHandler {
      * Whether to display the course refresher in single activity course format. If it returns false, a refresher must be
      * included in the template that calls the doRefresh method of the component. Defaults to true.
      *
-     * @return Whether the refresher should be displayed.
+     * @return {boolean} Whether the refresher should be displayed.
      */
     displayRefresherInSingleActivity?(): boolean;
 
     /**
      * Get the icon src for the module.
      *
-     * @return The icon src.
+     * @return {string} The icon src.
      */
     getIconSrc?(): string;
 
@@ -81,8 +82,8 @@ export interface CoreCourseModuleHandler extends CoreDelegateHandler {
      * Check if this type of module supports a certain feature.
      * If this function is implemented, the supportedFeatures object will be ignored.
      *
-     * @param feature The feature to check.
-     * @return The result of the supports check.
+     * @param {string} feature The feature to check.
+     * @return {any} The result of the supports check.
      */
     supportsFeature?(feature: string): any;
 }
@@ -93,31 +94,37 @@ export interface CoreCourseModuleHandler extends CoreDelegateHandler {
 export interface CoreCourseModuleHandlerData {
     /**
      * The title to display in the module.
+     * @type {string}
      */
     title: string;
 
     /**
      * The accessibility title to use in the module. If not provided, title will be used.
+     * @type {string}
      */
     a11yTitle?: string;
 
     /**
      * The image to use as icon (path to the image).
+     * @type {string}
      */
     icon?: string | SafeUrl;
 
     /**
      * The class to assign to the item.
+     * @type {string}
      */
     class?: string;
 
     /**
      * The text to show in an extra badge.
+     * @type {string}
      */
     extraBadge?: string;
 
     /**
      * The color of the extra badge. Default: primary.
+     * @type {string}
      */
     extraBadgeColor?: string;
 
@@ -125,40 +132,38 @@ export interface CoreCourseModuleHandlerData {
      * Whether to display a button to download/refresh the module if it's downloadable.
      * If it's set to true, the app will show a download/refresh button when needed and will handle the download of the
      * module using CoreCourseModulePrefetchDelegate.
+     * @type {boolean}
      */
     showDownloadButton?: boolean;
 
     /**
      * The buttons to display in the module item.
+     * @type {CoreCourseModuleHandlerButton[]}
      */
     buttons?: CoreCourseModuleHandlerButton[];
 
     /**
-     * Whether to display a spinner where the download button is displayed. The module icon, title, etc. will be displayed.
+     * Whether to display a spinner in the module item.
+     * @type {boolean}
      */
     spinner?: boolean;
 
     /**
-     * Whether the data is being loaded. If true, it will display a spinner in the whole module, nothing else will be shown.
-     */
-    loading?: boolean;
-
-    /**
      * Action to perform when the module is clicked.
      *
-     * @param event The click event.
-     * @param navCtrl NavController instance.
-     * @param module The module object.
-     * @param courseId The course ID.
-     * @param options Options for the navigation.
-     * @param params Params for the new page.
+     * @param {Event} event The click event.
+     * @param {NavController} navCtrl NavController instance.
+     * @param {any} module The module object.
+     * @param {number} courseId The course ID.
+     * @param {NavOptions} [options] Options for the navigation.
+     * @param {any} [params] Params for the new page.
      */
     action?(event: Event, navCtrl: NavController, module: any, courseId: number, options?: NavOptions, params?: any): void;
 
     /**
      * Updates the status of the module.
      *
-     * @param status Module status.
+     * @param {string} status Module status.
      */
     updateStatus?(status: string): void;
 
@@ -175,9 +180,9 @@ export interface CoreCourseModuleMainComponent {
     /**
      * Refresh the data.
      *
-     * @param refresher Refresher.
-     * @param done Function to call when done.
-     * @return Promise resolved when done.
+     * @param {any} [refresher] Refresher.
+     * @param {Function} [done] Function to call when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     doRefresh(refresher?: any, done?: () => void): Promise<any>;
 }
@@ -188,36 +193,41 @@ export interface CoreCourseModuleMainComponent {
 export interface CoreCourseModuleHandlerButton {
     /**
      * The label to add to the button.
+     * @type {string}
      */
     label: string;
 
     /**
      * The name of the button icon.
+     * @type {string}
      */
     icon: string;
 
     /**
      * Whether the button should be hidden.
+     * @type {boolean}
      */
     hidden?: boolean;
 
     /**
      * The name of the button icon to use in iOS instead of "icon".
+     * @type {string}
      */
     iosIcon?: string;
 
     /**
      * The name of the button icon to use in MaterialDesign instead of "icon".
+     * @type {string}
      */
     mdIcon?: string;
 
     /**
      * Action to perform when the button is clicked.
      *
-     * @param event The click event.
-     * @param navCtrl NavController instance.
-     * @param module The module object.
-     * @param courseId The course ID.
+     * @param {Event} event The click event.
+     * @param {NavController} navCtrl NavController instance.
+     * @param {any} module The module object.
+     * @param {number} courseId The course ID.
      */
     action(event: Event, navCtrl: NavController, module: any, courseId: number): void;
 }
@@ -238,10 +248,10 @@ export class CoreCourseModuleDelegate extends CoreDelegate {
     /**
      * Get the component to render the module.
      *
-     * @param injector Injector.
-     * @param course The course object.
-     * @param module The module object.
-     * @return Promise resolved with component to use, undefined if not found.
+     * @param {Injector} injector Injector.
+     * @param {any} course The course object.
+     * @param {any} module The module object.
+     * @return {Promise<any>} Promise resolved with component to use, undefined if not found.
      */
     getMainComponent(injector: Injector, course: any, module: any): Promise<any> {
         return Promise.resolve(this.executeFunctionOnEnabled(module.modname, 'getMainComponent', [injector, course, module]))
@@ -253,24 +263,22 @@ export class CoreCourseModuleDelegate extends CoreDelegate {
     /**
      * Get the data required to display the module in the course contents view.
      *
-     * @param modname The name of the module type.
-     * @param module The module object.
-     * @param courseId The course ID.
-     * @param sectionId The section ID.
-     * @param forCoursePage Whether the data will be used to render the course page.
-     * @return Data to render the module.
+     * @param {string} modname The name of the module type.
+     * @param {any} module The module object.
+     * @param {number} courseId The course ID.
+     * @param {number} sectionId The section ID.
+     * @return {CoreCourseModuleHandlerData} Data to render the module.
      */
-    getModuleDataFor(modname: string, module: any, courseId: number, sectionId: number, forCoursePage?: boolean)
-            : CoreCourseModuleHandlerData {
-        return this.executeFunctionOnEnabled(modname, 'getData', [module, courseId, sectionId, forCoursePage]);
+    getModuleDataFor(modname: string, module: any, courseId: number, sectionId: number): CoreCourseModuleHandlerData {
+        return this.executeFunctionOnEnabled(modname, 'getData', [module, courseId, sectionId]);
     }
 
     /**
      * Check if a certain module type is disabled in a site.
      *
-     * @param modname The name of the module type.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with boolean: whether module is disabled.
+     * @param {string} modname The name of the module type.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<boolean>} Promise resolved with boolean: whether module is disabled.
      */
     isModuleDisabled(modname: string, siteId?: string): Promise<boolean> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -281,12 +289,12 @@ export class CoreCourseModuleDelegate extends CoreDelegate {
     /**
      * Check if a certain module type is disabled in a site.
      *
-     * @param modname The name of the module type.
-     * @param site Site. If not defined, use current site.
-     * @return Whether module is disabled.
+     * @param {string} modname The name of the module type.
+     * @param {CoreSite} [site] Site. If not defined, use current site.
+     * @return {boolean} Whether module is disabled.
      */
     isModuleDisabledInSite(modname: string, site?: CoreSite): boolean {
-        const handler = this.getHandler(modname, false);
+        const handler = this.getHandler(modname, true);
 
         if (handler) {
             site = site || this.sitesProvider.getCurrentSite();
@@ -301,8 +309,8 @@ export class CoreCourseModuleDelegate extends CoreDelegate {
      * Whether to display the course refresher in single activity course format. If it returns false, a refresher must be
      * included in the template that calls the doRefresh method of the component. Defaults to true.
      *
-     * @param modname The name of the module type.
-     * @return Whether the refresher should be displayed.
+     * @param {any} modname The name of the module type.
+     * @return {boolean} Whether the refresher should be displayed.
      */
     displayRefresherInSingleActivity(modname: string): boolean {
         return this.executeFunctionOnEnabled(modname, 'displayRefresherInSingleActivity');
@@ -311,9 +319,9 @@ export class CoreCourseModuleDelegate extends CoreDelegate {
     /**
      * Get the icon src for a certain type of module.
      *
-     * @param modname The name of the module type.
-     * @param modicon The mod icon string.
-     * @return The icon src.
+     * @param {any} modname The name of the module type.
+     * @param {string} [modicon] The mod icon string.
+     * @return {string} The icon src.
      */
     getModuleIconSrc(modname: string, modicon?: string): string {
         return this.executeFunctionOnEnabled(modname, 'getIconSrc') || this.courseProvider.getModuleIconSrc(modname, modicon);
@@ -322,10 +330,10 @@ export class CoreCourseModuleDelegate extends CoreDelegate {
     /**
      * Check if a certain type of module supports a certain feature.
      *
-     * @param modname The modname.
-     * @param feature The feature to check.
-     * @param defaultValue Value to return if the module is not supported or doesn't know if it's supported.
-     * @return The result of the supports check.
+     * @param {string} modname The modname.
+     * @param {string} feature The feature to check.
+     * @param {any} defaultValue Value to return if the module is not supported or doesn't know if it's supported.
+     * @return {any} The result of the supports check.
      */
     supportsFeature(modname: string, feature: string, defaultValue: any): any {
         const handler = this.enabledHandlers[modname];

@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,13 +21,11 @@ import { CoreDirectivesModule } from '@directives/directives.module';
 import { CorePipesModule } from '@pipes/pipes.module';
 import { AddonCalendarCalendarComponent } from '../components/calendar/calendar';
 import { AddonCalendarUpcomingEventsComponent } from '../components/upcoming-events/upcoming-events';
-import { AddonCalendarFilterPopoverComponent } from '../components/filter/filter';
 
 @NgModule({
     declarations: [
         AddonCalendarCalendarComponent,
-        AddonCalendarUpcomingEventsComponent,
-        AddonCalendarFilterPopoverComponent
+        AddonCalendarUpcomingEventsComponent
     ],
     imports: [
         CommonModule,
@@ -41,11 +39,7 @@ import { AddonCalendarFilterPopoverComponent } from '../components/filter/filter
     ],
     exports: [
         AddonCalendarCalendarComponent,
-        AddonCalendarUpcomingEventsComponent,
-        AddonCalendarFilterPopoverComponent
-    ],
-    entryComponents: [
-        AddonCalendarFilterPopoverComponent
+        AddonCalendarUpcomingEventsComponent
     ]
 })
 export class AddonCalendarComponentsModule {}

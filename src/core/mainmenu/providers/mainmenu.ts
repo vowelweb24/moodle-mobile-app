@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,21 +26,25 @@ import { CoreMainMenuDelegate, CoreMainMenuHandlerToDisplay } from './delegate';
 export interface CoreMainMenuCustomItem {
     /**
      * Type of the item: app, inappbrowser, browser or embedded.
+     * @type {string}
      */
     type: string;
 
     /**
      * Url of the item.
+     * @type {string}
      */
     url: string;
 
     /**
      * Label to display for the item.
+     * @type {string}
      */
     label: string;
 
     /**
      * Name of the icon to display for the item.
+     * @type {string}
      */
     icon: string;
 }
@@ -62,7 +66,7 @@ export class CoreMainMenuProvider {
     /**
      * Get the current main menu handlers.
      *
-     * @return Promise resolved with the current main menu handlers.
+     * @return {Promise<CoreMainMenuHandlerToDisplay[]>} Promise resolved with the current main menu handlers.
      */
     getCurrentMainMenuHandlers(): Promise<CoreMainMenuHandlerToDisplay[]> {
         const deferred = this.utils.promiseDefer();
@@ -85,8 +89,8 @@ export class CoreMainMenuProvider {
     /**
      * Get a list of custom menu items for a certain site.
      *
-     * @param siteId Site ID. If not defined, current site.
-     * @return List of custom menu items.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<CoreMainMenuCustomItem[]>} List of custom menu items.
      */
     getCustomMenuItems(siteId?: string): Promise<CoreMainMenuCustomItem[]> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -189,7 +193,7 @@ export class CoreMainMenuProvider {
     /**
      * Get the number of items to be shown on the main menu bar.
      *
-     * @return Number of items depending on the device width.
+     * @return {number} Number of items depending on the device width.
      */
     getNumItems(): number {
         if (!this.isResponsiveMainMenuItemsDisabledInCurrentSite() && window && window.innerWidth) {
@@ -215,8 +219,8 @@ export class CoreMainMenuProvider {
     /**
      * Get tabs placement depending on the device size.
      *
-     * @param navCtrl NavController to resize the content.
-     * @return Tabs placement including side value.
+     * @param  {NavController} navCtrl  NavController to resize the content.
+     * @return {string}                Tabs placement including side value.
      */
     getTabPlacement(navCtrl: NavController): string {
         const tablet = window && window.innerWidth && window.innerWidth >= 576 && window.innerHeight >= 576;
@@ -236,9 +240,9 @@ export class CoreMainMenuProvider {
     /**
      * Check if a certain page is the root of a main menu handler currently displayed.
      *
-     * @param page Name of the page.
-     * @param pageParams Page params.
-     * @return Promise resolved with boolean: whether it's the root of a main menu handler.
+     * @param {string} page Name of the page.
+     * @param {string} [pageParams] Page params.
+     * @return {Promise<boolean>} Promise resolved with boolean: whether it's the root of a main menu handler.
      */
     isCurrentMainMenuHandler(pageName: string, pageParams?: any): Promise<boolean> {
         return this.getCurrentMainMenuHandlers().then((handlers) => {
@@ -253,7 +257,7 @@ export class CoreMainMenuProvider {
     /**
      * Check if responsive main menu items is disabled in the current site.
      *
-     * @return Whether it's disabled.
+     * @return {boolean} Whether it's disabled.
      */
     protected isResponsiveMainMenuItemsDisabledInCurrentSite(): boolean {
         const site = this.sitesProvider.getCurrentSite();

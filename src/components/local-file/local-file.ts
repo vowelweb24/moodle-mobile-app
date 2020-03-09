@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { Component, Input, Output, OnInit, EventEmitter } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CoreFileProvider } from '@providers/file';
 import { CoreDomUtilsProvider } from '@providers/utils/dom';
 import { CoreMimetypeUtilsProvider } from '@providers/utils/mimetype';
@@ -47,12 +48,9 @@ export class CoreLocalFileComponent implements OnInit {
     editMode: boolean;
     relativePath: string;
 
-    constructor(private mimeUtils: CoreMimetypeUtilsProvider,
-            private utils: CoreUtilsProvider,
-            private textUtils: CoreTextUtilsProvider,
-            private fileProvider: CoreFileProvider,
-            private domUtils: CoreDomUtilsProvider,
-            private timeUtils: CoreTimeUtilsProvider) {
+    constructor(private mimeUtils: CoreMimetypeUtilsProvider, private utils: CoreUtilsProvider, private translate: TranslateService,
+            private textUtils: CoreTextUtilsProvider, private fileProvider: CoreFileProvider,
+            private domUtils: CoreDomUtilsProvider, private timeUtils: CoreTimeUtilsProvider) {
         this.onDelete = new EventEmitter();
         this.onRename = new EventEmitter();
         this.onClick = new EventEmitter();
@@ -95,7 +93,7 @@ export class CoreLocalFileComponent implements OnInit {
     /**
      * File clicked.
      *
-     * @param e Click event.
+     * @param {Event} e Click event.
      */
     fileClicked(e: Event): void {
         if (this.editMode) {
@@ -115,7 +113,7 @@ export class CoreLocalFileComponent implements OnInit {
     /**
      * Activate the edit mode.
      *
-     * @param e Click event.
+     * @param {Event} e Click event.
      */
     activateEdit(e: Event): void {
         e.preventDefault();
@@ -127,8 +125,8 @@ export class CoreLocalFileComponent implements OnInit {
     /**
      * Rename the file.
      *
-     * @param newName New name.
-     * @param e Click event.
+     * @param {string} newName New name.
+     * @param {Event}  e       Click event.
      */
     changeName(newName: string, e: Event): void {
         e.preventDefault();
@@ -167,15 +165,15 @@ export class CoreLocalFileComponent implements OnInit {
     /**
      * Delete the file.
      *
-     * @param e Click event.
+     * @param {Event} e Click event.
      */
     deleteFile(e: Event): void {
         e.preventDefault();
         e.stopPropagation();
 
         // Ask confirmation.
-        this.domUtils.showDeleteConfirm('core.confirmdeletefile').then(() => {
-            const modal = this.domUtils.showModalLoading('core.deleting', true);
+        this.domUtils.showConfirm(this.translate.instant('core.confirmdeletefile')).then(() => {
+            const modal = this.domUtils.showModalLoading();
 
             return this.fileProvider.removeFile(this.relativePath).then(() => {
                 this.onDelete.emit();

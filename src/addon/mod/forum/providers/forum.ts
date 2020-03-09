@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ export class AddonModForumProvider {
     static NEW_DISCUSSION_EVENT = 'addon_mod_forum_new_discussion';
     static REPLY_DISCUSSION_EVENT = 'addon_mod_forum_reply_discussion';
     static VIEW_DISCUSSION_EVENT = 'addon_mod_forum_view_discussion';
-    static CHANGE_DISCUSSION_EVENT = 'addon_mod_forum_change_discussion_status';
+    static CHANGE_DISCUSSION_EVENT = 'addon_mod_forum_lock_discussion';
     static MARK_READ_EVENT = 'addon_mod_forum_mark_read';
 
     static PREFERENCE_SORTORDER = 'forum_discussionlistsortorder';
@@ -64,9 +64,9 @@ export class AddonModForumProvider {
     /**
      * Get cache key for can add discussion WS calls.
      *
-     * @param forumId Forum ID.
-     * @param groupId Group ID.
-     * @return Cache key.
+     * @param  {number} forumId Forum ID.
+     * @param  {number} groupId Group ID.
+     * @return {string}         Cache key.
      */
     protected getCanAddDiscussionCacheKey(forumId: number, groupId: number): string {
         return this.getCommonCanAddDiscussionCacheKey(forumId) + groupId;
@@ -74,52 +74,19 @@ export class AddonModForumProvider {
 
     /**
      * Get common part of cache key for can add discussion WS calls.
-     * TODO: Use getForumDataCacheKey as a prefix.
      *
-     * @param forumId Forum ID.
-     * @return Cache key.
+     * @param  {number} forumId Forum ID.
+     * @return {string}         Cache key.
      */
     protected getCommonCanAddDiscussionCacheKey(forumId: number): string {
         return this.ROOT_CACHE_KEY + 'canadddiscussion:' + forumId + ':';
     }
 
     /**
-     * Get prefix cache key for all forum activity data WS calls.
-     *
-     * @param forumId Forum ID.
-     * @return Cache key.
-     */
-    protected getForumDataPrefixCacheKey(forumId: number): string {
-        return this.ROOT_CACHE_KEY + forumId;
-    }
-
-    /**
-     * Get cache key for discussion post data WS calls.
-     *
-     * @param forumId Forum ID.
-     * @param discussionId Discussion ID.
-     * @param postId Course ID.
-     * @return Cache key.
-     */
-    protected getDiscussionPostDataCacheKey(forumId: number, discussionId: number, postId: number): string {
-        return this.getForumDiscussionDataCacheKey(forumId, discussionId) + ':post:' + postId;
-    }
-
-    /**
      * Get cache key for forum data WS calls.
      *
-     * @param courseId Course ID.
-     * @return Cache key.
-     */
-    protected getForumDiscussionDataCacheKey(forumId: number, discussionId: number): string {
-         return this.getForumDataPrefixCacheKey(forumId) + ':discussion:' + discussionId;
-    }
-
-    /**
-     * Get cache key for forum data WS calls.
-     *
-     * @param courseId Course ID.
-     * @return Cache key.
+     * @param  {number} courseId Course ID.
+     * @return {string}          Cache key.
      */
     protected getForumDataCacheKey(courseId: number): string {
         return this.ROOT_CACHE_KEY + 'forum:' + courseId;
@@ -127,10 +94,9 @@ export class AddonModForumProvider {
 
     /**
      * Get cache key for forum access information WS calls.
-     * TODO: Use getForumDataCacheKey as a prefix.
      *
-     * @param forumId Forum ID.
-     * @return Cache key.
+     * @param  {number} forumId Forum ID.
+     * @return {string}         Cache key.
      */
     protected getAccessInformationCacheKey(forumId: number): string {
         return this.ROOT_CACHE_KEY + 'accessInformation:' + forumId;
@@ -138,10 +104,9 @@ export class AddonModForumProvider {
 
     /**
      * Get cache key for forum discussion posts WS calls.
-     * TODO: Use getForumDiscussionDataCacheKey instead.
      *
-     * @param discussionId Discussion ID.
-     * @return Cache key.
+     * @param  {number} discussionId Discussion ID.
+     * @return {string}              Cache key.
      */
     protected getDiscussionPostsCacheKey(discussionId: number): string {
         return this.ROOT_CACHE_KEY + 'discussion:' + discussionId;
@@ -150,9 +115,9 @@ export class AddonModForumProvider {
     /**
      * Get cache key for forum discussions list WS calls.
      *
-     * @param forumId Forum ID.
-     * @param sortOrder Sort order.
-     * @return Cache key.
+     * @param  {number} forumId Forum ID.
+     * @param  {number} sortOrder Sort order.
+     * @return {string} Cache key.
      */
     protected getDiscussionsListCacheKey(forumId: number, sortOrder: number): string {
         let key = this.ROOT_CACHE_KEY + 'discussions:' + forumId;
@@ -167,13 +132,13 @@ export class AddonModForumProvider {
     /**
      * Add a new discussion. It will fail if offline or cannot connect.
      *
-     * @param forumId Forum ID.
-     * @param subject New discussion's subject.
-     * @param message New discussion's message.
-     * @param options Options (subscribe, pin, ...).
-     * @param groupId Group this discussion belongs to.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the discussion is created.
+     * @param  {number} forumId   Forum ID.
+     * @param  {string} subject   New discussion's subject.
+     * @param  {string} message   New discussion's message.
+     * @param  {any}    [options] Options (subscribe, pin, ...).
+     * @param  {string} [groupId] Group this discussion belongs to.
+     * @param  {string} [siteId]  Site ID. If not defined, current site.
+     * @return {Promise<any>}     Promise resolved when the discussion is created.
      */
     addNewDiscussionOnline(forumId: number, subject: string, message: string, options?: any, groupId?: number, siteId?: string)
             : Promise<any> {
@@ -203,13 +168,13 @@ export class AddonModForumProvider {
     /**
      * Check if a user can post to a certain group.
      *
-     * @param forumId Forum ID.
-     * @param groupId Group ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with an object with the following properties:
-     *         - status (boolean)
-     *         - canpindiscussions (boolean)
-     *         - cancreateattachment (boolean)
+     * @param  {number} forumId  Forum ID.
+     * @param  {number} groupId  Group ID.
+     * @param  {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>}    Promise resolved with an object with the following properties:
+     *                            - status (boolean)
+     *                            - canpindiscussions (boolean)
+     *                            - cancreateattachment (boolean)
      */
     canAddDiscussion(forumId: number, groupId: number, siteId?: string): Promise<any> {
         const params = {
@@ -243,91 +208,48 @@ export class AddonModForumProvider {
     /**
      * Check if a user can post to all groups.
      *
-     * @param forumId Forum ID.
-     * @return Promise resolved with an object with the following properties:
-     *         - status (boolean)
-     *         - canpindiscussions (boolean)
-     *         - cancreateattachment (boolean)
+     * @param  {number} forumId Forum ID.
+     * @return {Promise<any>}   Promise resolved with an object with the following properties:
+     *                           - status (boolean)
+     *                           - canpindiscussions (boolean)
+     *                           - cancreateattachment (boolean)
      */
     canAddDiscussionToAll(forumId: number): Promise<any> {
         return this.canAddDiscussion(forumId, AddonModForumProvider.ALL_PARTICIPANTS);
     }
 
     /**
-     * Delete a post.
-     *
-     * @param postId Post id.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when done.
-     * @since 3.8
-     */
-    deletePost(postId: number, siteId?: string): Promise<any> {
-        return this.sitesProvider.getSite(siteId).then((site) => {
-            const params = {
-                postid: postId
-            };
-
-            return site.write('mod_forum_delete_post', params);
-        });
-    }
-
-    /**
      * Extract the starting post of a discussion from a list of posts. The post is removed from the array passed as a parameter.
      *
-     * @param posts Posts to search.
-     * @return Starting post or undefined if not found.
+     * @param  {any[]} posts Posts to search.
+     * @return {any}         Starting post or undefined if not found.
      */
     extractStartingPost(posts: any[]): any {
-        const index = posts.findIndex((post) => post.parent == 0);
+        // Check the last post first, since they'll usually be ordered by create time.
+        for (let i = posts.length - 1; i >= 0; i--) {
+            if (posts[i].parent == 0) {
+                return posts.splice(i, 1).pop(); // Remove it from the array.
+            }
+        }
 
-        return index >= 0 ? posts.splice(index, 1).pop() : undefined;
+        return undefined;
     }
 
     /**
      * There was a bug adding new discussions to All Participants (see MDL-57962). Check if it's fixed.
      *
-     * @return True if fixed, false otherwise.
+     * @return {boolean} True if fixed, false otherwise.
      */
     isAllParticipantsFixed(): boolean {
         return this.sitesProvider.getCurrentSite().isVersionGreaterEqualThan(['3.1.5', '3.2.2']);
     }
 
     /**
-     * Returns whether or not getDiscussionPost WS available or not.
-     *
-     * @return If WS is avalaible.
-     * @since 3.8
-     */
-    isGetDiscussionPostAvailable(): boolean {
-        return this.sitesProvider.wsAvailableInCurrentSite('mod_forum_get_discussion_post');
-    }
-
-    /**
-     * Returns whether or not deletePost WS available or not.
-     *
-     * @return If WS is avalaible.
-     * @since 3.8
-     */
-    isDeletePostAvailable(): boolean {
-        return this.sitesProvider.wsAvailableInCurrentSite('mod_forum_delete_post');
-    }
-
-    /**
-     * Returns whether or not updatePost WS available or not.
-     *
-     * @return If WS is avalaible.
-     * @since 3.8
-     */
-    isUpdatePostAvailable(): boolean {
-        return this.sitesProvider.wsAvailableInCurrentSite('mod_forum_update_discussion_post');
-    }
-
-    /**
      * Format discussions, setting groupname if the discussion group is valid.
      *
-     * @param cmId Forum cmid.
-     * @param discussions List of discussions to format.
-     * @return Promise resolved with the formatted discussions.
+     * @param  {number} cmId        Forum cmid.
+     * @param  {any[]}  discussions List of discussions to format.
+     * @return {Promise<any[]>}     Promise resolved with the formatted discussions.
      */
     formatDiscussionsGroups(cmId: number, discussions: any[]): Promise<any[]> {
         discussions = this.utils.clone(discussions);
@@ -366,9 +288,9 @@ export class AddonModForumProvider {
     /**
      * Get all course forums.
      *
-     * @param courseId Course ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the forums are retrieved.
+     * @param  {number} courseId Course ID.
+     * @param  {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any[]>}  Promise resolved when the forums are retrieved.
      */
     getCourseForums(courseId: number, siteId?: string): Promise<any[]> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -385,47 +307,12 @@ export class AddonModForumProvider {
     }
 
     /**
-     * Get a particular discussion post.
-     *
-     * @param forumId Forum ID.
-     * @param discussionId Discussion ID.
-     * @param postId Post ID.
-     * @param ignoreCache True if it should ignore cached data (it will always fail in offline or server down).
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the post is retrieved.
-     */
-    getDiscussionPost(forumId: number, discussionId: number, postId: number, ignoreCache?: boolean, siteId?: string): Promise<any> {
-        return this.sitesProvider.getSite(siteId).then((site) => {
-            const params = {
-                    postid: postId
-                },
-                preSets: CoreSiteWSPreSets = {
-                    cacheKey: this.getDiscussionPostDataCacheKey(forumId, discussionId, postId),
-                    updateFrequency: CoreSite.FREQUENCY_USUALLY
-                };
-
-            if (ignoreCache) {
-                preSets.getFromCache = false;
-                preSets.emergencyCache = false;
-            }
-
-            return site.read('mod_forum_get_discussion_post', params, preSets).then((response) => {
-                if (response.post) {
-                    return response.post;
-                }
-
-                return Promise.reject(null);
-            });
-        });
-    }
-
-    /**
      * Get a forum by course module ID.
      *
-     * @param courseId Course ID.
-     * @param cmId Course module ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the forum is retrieved.
+     * @param  {number} courseId Course ID.
+     * @param  {number} cmId     Course module ID.
+     * @param  {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>}    Promise resolved when the forum is retrieved.
      */
     getForum(courseId: number, cmId: number, siteId?: string): Promise<any> {
         return this.getCourseForums(courseId, siteId).then((forums) => {
@@ -441,10 +328,10 @@ export class AddonModForumProvider {
     /**
      * Get a forum by forum ID.
      *
-     * @param courseId Course ID.
-     * @param forumId Forum ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the forum is retrieved.
+     * @param  {number} courseId Course ID.
+     * @param  {number} forumId  Forum ID.
+     * @param  {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>}    Promise resolved when the forum is retrieved.
      */
     getForumById(courseId: number, forumId: number, siteId?: string): Promise<any> {
         return this.getCourseForums(courseId, siteId).then((forums) => {
@@ -460,10 +347,10 @@ export class AddonModForumProvider {
     /**
      * Get access information for a given forum.
      *
-     * @param forumId Forum ID.
-     * @param forceCache True to always get the value from cache. false otherwise.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Object with access information.
+     * @param  {number}  forumId      Forum ID.
+     * @param  {boolean} [forceCache] True to always get the value from cache. false otherwise.
+     * @param  {string}  [siteId]     Site ID. If not defined, current site.
+     * @return {Promise<any>} Object with access information.
      * @since 3.7
      */
     getAccessInformation(forumId: number, forceCache?: boolean, siteId?: string): Promise<any> {
@@ -488,9 +375,9 @@ export class AddonModForumProvider {
     /**
      * Get forum discussion posts.
      *
-     * @param discussionId Discussion ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with forum posts and rating info.
+     * @param  {number} discussionId Discussion ID.
+     * @param  {string} [siteId]     Site ID. If not defined, current site.
+     * @return {Promise<{posts: any[], ratinginfo?: CoreRatingInfo}>} Promise resolved with forum posts and rating info.
      */
     getDiscussionPosts(discussionId: number, siteId?: string): Promise<{posts: any[], ratinginfo?: CoreRatingInfo}> {
         const params = {
@@ -516,8 +403,8 @@ export class AddonModForumProvider {
     /**
      * Sort forum discussion posts by an specified field.
      *
-     * @param posts Discussion posts to be sorted in place.
-     * @param direction Direction of the sorting (ASC / DESC).
+     * @param {any[]}  posts     Discussion posts to be sorted in place.
+     * @param {string} direction Direction of the sorting (ASC / DESC).
      */
     sortDiscussionPosts(posts: any[], direction: string): void {
         // @todo: Check children when sorting.
@@ -535,8 +422,8 @@ export class AddonModForumProvider {
     /**
      * Return whether discussion lists can be sorted.
      *
-     * @param site Site. If not defined, current site.
-     * @return True if discussion lists can be sorted.
+     * @param {CoreSite} [site] Site. If not defined, current site.
+     * @return {boolean} True if discussion lists can be sorted.
      */
     isDiscussionListSortingAvailable(site?: CoreSite): boolean {
         site = site || this.sitesProvider.getCurrentSite();
@@ -547,7 +434,7 @@ export class AddonModForumProvider {
     /**
      * Return the list of available sort orders.
      *
-     * @return List of sort orders.
+     * @return {{label: string, value: number}[]} List of sort orders.
      */
     getAvailableSortOrders(): {label: string, value: number}[] {
         const sortOrders = [
@@ -588,15 +475,14 @@ export class AddonModForumProvider {
     /**
      * Get forum discussions.
      *
-     * @param forumId Forum ID.
-     * @param sortOrder Sort order.
-     * @param page Page.
-     * @param forceCache True to always get the value from cache. false otherwise.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with an object with:
-     *         - discussions: List of discussions. Note that for every discussion in the list discussion.id is the main post ID but
-     *         discussion ID is discussion.discussion.
-     *         - canLoadMore: True if there may be more discussions to load.
+     * @param  {number}  forumId      Forum ID.
+     * @param  {number}  [sortOrder]  Sort order.
+     * @param  {number}  [page=0]     Page.
+     * @param  {boolean} [forceCache] True to always get the value from cache. false otherwise.
+     * @param  {string}  [siteId]     Site ID. If not defined, current site.
+     * @return {Promise<any>}         Promise resolved with an object with:
+     *                                 - discussions: List of discussions.
+     *                                 - canLoadMore: True if there may be more discussions to load.
      */
     getDiscussions(forumId: number, sortOrder?: number, page: number = 0, forceCache?: boolean, siteId?: string): Promise<any> {
         sortOrder = sortOrder || AddonModForumProvider.SORTORDER_LASTPOST_DESC;
@@ -669,15 +555,15 @@ export class AddonModForumProvider {
      * Get forum discussions in several pages.
      * If a page fails, the discussions until that page will be returned along with a flag indicating an error occurred.
      *
-     * @param forumId Forum ID.
-     * @param sortOrder Sort order.
-     * @param forceCache True to always get the value from cache, false otherwise.
-     * @param numPages Number of pages to get. If not defined, all pages.
-     * @param startPage Page to start. If not defined, first page.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with an object with:
-     *         - discussions: List of discussions.
-     *         - error: True if an error occurred, false otherwise.
+     * @param  {number}  forumId     Forum ID.
+     * @param  {number}  [sortOrder] Sort order.
+     * @param  {boolean} [forceCache] True to always get the value from cache, false otherwise.
+     * @param  {number}  [numPages]  Number of pages to get. If not defined, all pages.
+     * @param  {number}  [startPage] Page to start. If not defined, first page.
+     * @param  {string}  [siteId]    Site ID. If not defined, current site.
+     * @return {Promise<any>}        Promise resolved with an object with:
+     *                                - discussions: List of discussions.
+     *                                - error: True if an error occurred, false otherwise.
      */
     getDiscussionsInPages(forumId: number, sortOrder?: number, forceCache?: boolean, numPages?: number, startPage?: number,
             siteId?: string): Promise<any> {
@@ -720,9 +606,9 @@ export class AddonModForumProvider {
     /**
      * Invalidates can add discussion WS calls.
      *
-     * @param forumId Forum ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the data is invalidated.
+     * @param  {number} forumId  Forum ID.
+     * @param  {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>}    Promise resolved when the data is invalidated.
      */
     invalidateCanAddDiscussion(forumId: number, siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -734,9 +620,9 @@ export class AddonModForumProvider {
      * Invalidate the prefetched content except files.
      * To invalidate files, use AddonModForum#invalidateFiles.
      *
-     * @param moduleId The module ID.
-     * @param courseId Course ID.
-     * @return Promise resolved when data is invalidated.
+     * @param  {number} moduleId The module ID.
+     * @param  {number} courseId Course ID.
+     * @return {Promise<any>}    Promise resolved when data is invalidated.
      */
     invalidateContent(moduleId: number, courseId: number): Promise<any> {
         // Get the forum first, we need the forum ID.
@@ -755,7 +641,7 @@ export class AddonModForumProvider {
                     const promises = [];
 
                     response.discussions.forEach((discussion) => {
-                        promises.push(this.invalidateDiscussionPosts(discussion.discussion, forum.id));
+                        promises.push(this.invalidateDiscussionPosts(discussion.discussion));
                     });
 
                     return this.utils.allPromises(promises);
@@ -773,9 +659,9 @@ export class AddonModForumProvider {
     /**
      * Invalidates access information.
      *
-     * @param forumId Forum ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the data is invalidated.
+     * @param  {number} forumId  Forum ID.
+     * @param  {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>}    Promise resolved when the data is invalidated.
      */
     invalidateAccessInformation(forumId: number, siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -786,29 +672,22 @@ export class AddonModForumProvider {
     /**
      * Invalidates forum discussion posts.
      *
-     * @param discussionId Discussion ID.
-     * @param forumId Forum ID. If not set, we can't invalidate individual post information.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the data is invalidated.
+     * @param  {number} discussionId Discussion ID.
+     * @param  {string} [siteId]     Site ID. If not defined, current site.
+     * @return {Promise<any>}        Promise resolved when the data is invalidated.
      */
-    invalidateDiscussionPosts(discussionId: number, forumId?: number, siteId?: string): Promise<any> {
+    invalidateDiscussionPosts(discussionId: number, siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
-            const promises = [site.invalidateWsCacheForKey(this.getDiscussionPostsCacheKey(discussionId))];
-
-            if (forumId) {
-                promises.push(site.invalidateWsCacheForKeyStartingWith(this.getForumDiscussionDataCacheKey(forumId, discussionId)));
-            }
-
-            return this.utils.allPromises(promises);
+            return site.invalidateWsCacheForKey(this.getDiscussionPostsCacheKey(discussionId));
         });
     }
 
     /**
      * Invalidates discussion list.
      *
-     * @param forumId Forum ID.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the data is invalidated.
+     * @param  {number} forumId  Forum ID.
+     * @param  {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>}    Promise resolved when the data is invalidated.
      */
     invalidateDiscussionsList(forumId: number, siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -821,8 +700,8 @@ export class AddonModForumProvider {
     /**
      * Invalidate the prefetched files.
      *
-     * @param moduleId The module ID.
-     * @return Promise resolved when the files are invalidated.
+     * @param  {number} moduleId The module ID.
+     * @return {Promise<any>}   Promise resolved when the files are invalidated.
      */
     invalidateFiles(moduleId: number): Promise<any> {
         const siteId = this.sitesProvider.getCurrentSiteId();
@@ -833,8 +712,8 @@ export class AddonModForumProvider {
     /**
      * Invalidates forum data.
      *
-     * @param courseId Course ID.
-     * @return Promise resolved when the data is invalidated.
+     * @param  {number} courseId Course ID.
+     * @return {Promise<any>}    Promise resolved when the data is invalidated.
      */
     invalidateForumData(courseId: number): Promise<any> {
         return this.sitesProvider.getCurrentSite().invalidateWsCacheForKey(this.getForumDataCacheKey(courseId));
@@ -843,10 +722,10 @@ export class AddonModForumProvider {
     /**
      * Report a forum as being viewed.
      *
-     * @param id Module ID.
-     * @param name Name of the forum.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the WS call is successful.
+     * @param  {number} id    Module ID.
+     * @param {string} [name] Name of the forum.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>}  Promise resolved when the WS call is successful.
      */
     logView(id: number, name?: string, siteId?: string): Promise<any> {
         const params = {
@@ -860,11 +739,11 @@ export class AddonModForumProvider {
     /**
      * Report a forum discussion as being viewed.
      *
-     * @param id Discussion ID.
-     * @param forumId Forum ID.
-     * @param name Name of the forum.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when the WS call is successful.
+     * @param  {number} id    Discussion ID.
+     * @param  {number} forumId  Forum ID.
+     * @param {string} [name] Name of the forum.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resolved when the WS call is successful.
      */
     logDiscussionView(id: number, forumId: number, name?: string, siteId?: string): Promise<any> {
         const params = {
@@ -878,17 +757,17 @@ export class AddonModForumProvider {
     /**
      * Reply to a certain post.
      *
-     * @param postId ID of the post being replied.
-     * @param discussionId ID of the discussion the user is replying to.
-     * @param forumId ID of the forum the user is replying to.
-     * @param name Forum name.
-     * @param courseId Course ID the forum belongs to.
-     * @param subject New post's subject.
-     * @param message New post's message.
-     * @param options Options (subscribe, attachments, ...).
-     * @param siteId Site ID. If not defined, current site.
-     * @param allowOffline True if it can be stored in offline, false otherwise.
-     * @return Promise resolved with post ID if sent online, resolved with false if stored offline.
+     * @param  {number}  postId         ID of the post being replied.
+     * @param  {number}  discussionId   ID of the discussion the user is replying to.
+     * @param  {number}  forumId        ID of the forum the user is replying to.
+     * @param  {string}  name           Forum name.
+     * @param  {number}  courseId       Course ID the forum belongs to.
+     * @param  {string}  subject        New post's subject.
+     * @param  {string}  message        New post's message.
+     * @param  {any}     [options]      Options (subscribe, attachments, ...).
+     * @param  {string}  [siteId]       Site ID. If not defined, current site.
+     * @param  {boolean} [allowOffline] True if it can be stored in offline, false otherwise.
+     * @return {Promise<any>}           Promise resolved with post ID if sent online, resolved with false if stored offline.
      */
     replyPost(postId: number, discussionId: number, forumId: number, name: string, courseId: number, subject: string,
             message: string, options?: any, siteId?: string, allowOffline?: boolean): Promise<any> {
@@ -932,12 +811,12 @@ export class AddonModForumProvider {
     /**
      * Reply to a certain post. It will fail if offline or cannot connect.
      *
-     * @param postId ID of the post being replied.
-     * @param subject New post's subject.
-     * @param message New post's message.
-     * @param options Options (subscribe, attachments, ...).
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with the created post id.
+     * @param  {number} postId    ID of the post being replied.
+     * @param  {string} subject   New post's subject.
+     * @param  {string} message   New post's message.
+     * @param  {any}    [options] Options (subscribe, attachments, ...).
+     * @param  {string} [siteId]  Site ID. If not defined, current site.
+     * @return {Promise<number>}  Promise resolved with the created post id.
      */
     replyPostOnline(postId: number, subject: string, message: string, options?: any, siteId?: string): Promise<number> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -961,11 +840,11 @@ export class AddonModForumProvider {
     /**
      * Lock or unlock a discussion.
      *
-     * @param forumId Forum id.
-     * @param discussionId DIscussion id.
-     * @param locked True to lock, false to unlock.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when done.
+     * @param {number} forumId Forum id.
+     * @param {number} discussionId DIscussion id.
+     * @param {boolean} locked True to lock, false to unlock.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resvoled when done.
      * @since 3.7
      */
     setLockState(forumId: number, discussionId: number, locked: boolean, siteId?: string): Promise<any> {
@@ -983,8 +862,8 @@ export class AddonModForumProvider {
     /**
      * Returns whether the set pin state WS is available.
      *
-     * @param site Site. If not defined, current site.
-     * @return Whether it's available.
+     * @param  {CoreSite} [site] Site. If not defined, current site.
+     * @return {boolean} Whether it's available.
      * @since 3.7
      */
     isSetPinStateAvailableForSite(site?: CoreSite): boolean {
@@ -996,10 +875,10 @@ export class AddonModForumProvider {
     /**
      * Pin or unpin a discussion.
      *
-     * @param discussionId Discussion id.
-     * @param locked True to pin, false to unpin.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when done.
+     * @param {number} discussionId Discussion id.
+     * @param {boolean} locked True to pin, false to unpin.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resvoled when done.
      * @since 3.7
      */
     setPinState(discussionId: number, pinned: boolean, siteId?: string): Promise<any> {
@@ -1016,10 +895,10 @@ export class AddonModForumProvider {
     /**
      * Star or unstar a discussion.
      *
-     * @param discussionId Discussion id.
-     * @param starred True to star, false to unstar.
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved when done.
+     * @param {number} discussionId Discussion id.
+     * @param {boolean} starred True to star, false to unstar.
+     * @param {string} [siteId] Site ID. If not defined, current site.
+     * @return {Promise<any>} Promise resvoled when done.
      * @since 3.7
      */
     toggleFavouriteState(discussionId: number, starred: boolean, siteId?: string): Promise<any> {
@@ -1036,7 +915,7 @@ export class AddonModForumProvider {
     /**
      * Store the users data from a discussions/posts list.
      *
-     * @param list Array of posts or discussions.
+     * @param {any[]} list Array of posts or discussions.
      */
     protected storeUserData(list: any[]): void {
         const users = {};
@@ -1061,30 +940,5 @@ export class AddonModForumProvider {
         });
 
         this.userProvider.storeUsers(this.utils.objectToArray(users));
-    }
-
-    /**
-     * Update a certain post.
-     *
-     * @param postId ID of the post being edited.
-     * @param subject New post's subject.
-     * @param message New post's message.
-     * @param options Options (subscribe, attachments, ...).
-     * @param siteId Site ID. If not defined, current site.
-     * @return Promise resolved with success boolean when done.
-     */
-    updatePost(postId: number, subject: string, message: string, options?: any, siteId?: string): Promise<boolean> {
-        return this.sitesProvider.getSite(siteId).then((site) => {
-            const params = {
-                postid: postId,
-                subject: subject,
-                message: message,
-                options: this.utils.objectToArrayOfObjects(options, 'name', 'value')
-            };
-
-            return site.write('mod_forum_update_discussion_post', params).then((response) => {
-                return response && response.status;
-            });
-        });
     }
 }

@@ -1,6 +1,6 @@
 <ion-header>
     <ion-navbar core-back-button>
-        <ion-title>{{ title }}</ion-title>
+        <ion-title><core-format-text [text]="title"></core-format-text></ion-title>
     </ion-navbar>
 </ion-header>
 <ion-content>
@@ -13,15 +13,15 @@
                 <ion-avatar core-user-avatar class="item-avatar-center" [user]="user" [userId]="user.id" [linkProfile]="false" [checkOnline]="true">
                     <ion-icon name="create" class="core-icon-foreground" *ngIf="canChangeProfilePicture" (click)="changeProfilePicture()"></ion-icon>
                 </ion-avatar>
-                <h2>{{ user.fullname }}</h2>
-                <p *ngIf="user.address">{{ user.address }}</p>
+                <h2><core-format-text [text]="user.fullname"></core-format-text></h2>
+                <p><core-format-text *ngIf="user.address" [text]="user.address"></core-format-text></p>
                 <p *ngIf="user.roles" text-wrap>
                     <strong>{{ 'core.user.roles' | translate}}</strong>{{'core.labelsep' | translate}}
-                    {{ user.roles }}
+                    <core-format-text [text]="user.roles"></core-format-text>
                 </p>
             </ion-item>
 
-            <ion-grid class="core-user-communication-handlers" *ngIf="(communicationHandlers && communicationHandlers.length) || isLoadingHandlers">
+            <!-- <ion-grid class="core-user-communication-handlers" *ngIf="(communicationHandlers && communicationHandlers.length) || isLoadingHandlers">
                 <ion-row no-padding justify-content-between *ngIf="communicationHandlers && communicationHandlers.length">
                     <ion-col align-self-center *ngFor="let comHandler of communicationHandlers" text-center>
                         <a (click)="handlerClicked($event, comHandler)" [ngClass]="['core-user-profile-handler', comHandler.class]" title="{{comHandler.title | translate}}" tappable>
@@ -35,7 +35,7 @@
                         <ion-spinner></ion-spinner>
                     </ion-col>
                 </ion-row>
-            </ion-grid>
+            </ion-grid> -->
 
             <a ion-item text-wrap class="core-user-profile-handler" (click)="openUserDetails()" title="{{ 'core.user.details' | translate }}">
                 <ion-icon name="person" item-start></ion-icon>

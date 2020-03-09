@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,9 +39,9 @@ export class AddonModPageHelperProvider {
     /**
      * Gets the page HTML.
      *
-     * @param contents The module contents.
-     * @param moduleId The module ID.
-     * @return The HTML of the page.
+     * @param {any} contents The module contents.
+     * @param {number} moduleId The module ID.
+     * @return {Promise<string>} The HTML of the page.
      */
     getPageHtml(contents: any, moduleId: number): Promise<string> {
         let indexUrl,
@@ -76,7 +76,7 @@ export class AddonModPageHelperProvider {
                 AddonModPageProvider.COMPONENT, moduleId);
         } else {
             // We return the live URL.
-            promise = this.sitesProvider.getCurrentSite().checkAndFixPluginfileURL(indexUrl);
+            promise = Promise.resolve(this.sitesProvider.getCurrentSite().fixPluginfileURL(indexUrl));
         }
 
         return promise.then((url) => {
@@ -100,8 +100,8 @@ export class AddonModPageHelperProvider {
     /**
      * Returns whether the file is the main page of the module.
      *
-     * @param file An object returned from WS containing file info.
-     * @return Whether the file is the main page or not.
+     * @param {any} file An object returned from WS containing file info.
+     * @return {boolean}  Whether the file is the main page or not.
      */
     protected isMainPage(file: any): boolean {
         const filename = file.filename || '',

@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,17 +21,17 @@ import { CoreGroupsProvider } from '@providers/groups';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreSyncProvider } from '@providers/sync';
 import { CoreDomUtilsProvider } from '@providers/utils/dom';
+import { CoreTextUtilsProvider } from '@providers/utils/text';
 import { CoreTimeUtilsProvider } from '@providers/utils/time';
 import { CoreUtilsProvider } from '@providers/utils/utils';
 import { CoreCoursesProvider } from '@core/courses/providers/courses';
 import { CoreSplitViewComponent } from '@components/split-view/split-view';
 import { CoreRichTextEditorComponent } from '@components/rich-text-editor/rich-text-editor.ts';
-import { AddonCalendarProvider, AddonCalendarGetAccessInfoResult, AddonCalendarEvent } from '../../providers/calendar';
+import { AddonCalendarProvider } from '../../providers/calendar';
 import { AddonCalendarOfflineProvider } from '../../providers/calendar-offline';
 import { AddonCalendarHelperProvider } from '../../providers/helper';
 import { AddonCalendarSyncProvider } from '../../providers/calendar-sync';
 import { CoreSite } from '@classes/site';
-import { CoreFilterHelperProvider } from '@core/filter/providers/helper';
 
 /**
  * Page that displays a form to create/edit an event.
@@ -58,8 +58,7 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
     courseGroupSet = false;
     advanced = false;
     errors: any;
-    event: AddonCalendarEvent; // The event object (when editing an event).
-    otherEventsCount: number;
+    event: any; // The event object (when editing an event).
 
     // Form variables.
     eventForm: FormGroup;
@@ -71,7 +70,7 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
     protected courseId: number;
     protected originalData: any;
     protected currentSite: CoreSite;
-    protected types: {[name: string]: boolean}; // Object with the supported types.
+    protected types: any; // Object with the supported types.
     protected showAll: boolean;
     protected isDestroyed = false;
     protected error = false;
@@ -81,6 +80,7 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
             private navCtrl: NavController,
             private translate: TranslateService,
             private domUtils: CoreDomUtilsProvider,
+            private textUtils: CoreTextUtilsProvider,
             private timeUtils: CoreTimeUtilsProvider,
             private eventsProvider: CoreEventsProvider,
             private groupsProvider: CoreGroupsProvider,
@@ -93,7 +93,6 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
             private calendarSync: AddonCalendarSyncProvider,
             private fb: FormBuilder,
             private syncProvider: CoreSyncProvider,
-            private filterHelper: CoreFilterHelperProvider,
             @Optional() private svComponent: CoreSplitViewComponent) {
 
         this.eventId = navParams.get('eventId');
@@ -149,11 +148,11 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
     /**
      * Fetch the data needed to render the form.
      *
-     * @param refresh Whether it's refreshing data.
-     * @return Promise resolved when done.
+     * @param {boolean} [refresh] Whether it's refreshing data.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected fetchData(refresh?: boolean): Promise<any> {
-        let accessInfo: AddonCalendarGetAccessInfoResult;
+        let accessInfo;
 
         this.error = false;
 
@@ -198,7 +197,7 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
                         promises.push(this.calendarProvider.getEventById(this.eventId).then((event) => {
                             this.event = event;
                             if (event && event.repeatid) {
-                                this.otherEventsCount = event.eventcount ? event.eventcount - 1 : 0;
+                                event.othereventscount = event.eventcount ? event.eventcount - 1 : '';
                             }
 
                             return event;
@@ -244,9 +243,8 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
                     // Format the name of the courses.
                     const subPromises = [];
                     courses.forEach((course) => {
-                        subPromises.push(this.filterHelper.getFiltersAndFormatText(course.fullname, 'course', course.id)
-                                .then((result) => {
-                            course.fullname = result.text;
+                        subPromises.push(this.textUtils.formatText(course.fullname).then((text) => {
+                            course.fullname = text;
                         }).catch(() => {
                             // Ignore errors.
                         }));
@@ -291,9 +289,9 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
     /**
      * Load an event data into the form.
      *
-     * @param event Event data.
-     * @param isOffline Whether the data is from offline or not.
-     * @return Promise resolved when done.
+     * @param {any} event Event data.
+     * @param {boolean} isOffline Whether the data is from offline or not.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected loadEventData(event: any, isOffline: boolean): Promise<any> {
         const courseId = event.course ? event.course.id : event.courseid;
@@ -346,7 +344,7 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
     /**
      * Pull to refresh.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     refreshData(refresher: any): void {
         const promises = [
@@ -377,7 +375,7 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
     /**
      * A course was selected, get its groups.
      *
-     * @param courseId Course ID.
+     * @param {number} courseId Course ID.
      */
     groupCourseSelected(courseId: number): void {
         if (!courseId) {
@@ -398,8 +396,8 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
     /**
      * Load groups of a certain course.
      *
-     * @param courseId Course ID.
-     * @return Promise resolved when done.
+     * @param {number} courseId Course ID.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected loadGroups(courseId: number): Promise<any> {
         this.loadingGroups = true;
@@ -491,7 +489,7 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
 
         // Send the data.
         const modal = this.domUtils.showModalLoading('core.sending', true);
-        let event: AddonCalendarEvent;
+        let event;
 
         this.calendarProvider.submitEvent(this.eventId, data).then((result) => {
             event = result.event;
@@ -499,7 +497,7 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
             if (result.sent) {
                 // Event created or edited, invalidate right days & months.
                 const numberOfRepetitions = formData.repeat ? formData.repeats :
-                    (data.repeateditall && this.otherEventsCount ? this.otherEventsCount + 1 : 1);
+                    (data.repeateditall && this.event.othereventscount ? this.event.othereventscount + 1 : 1);
 
                 return this.calendarHelper.refreshAfterChangeEvent(result.event, numberOfRepetitions).catch(() => {
                     // Ignore errors.
@@ -517,7 +515,7 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
     /**
      * Convenience function to update or return to event list depending on device.
      *
-     * @param event Event.
+     * @param {number} [event] Event.
      */
     protected returnToList(event?: any): void {
         // Unblock the sync because the view will be destroyed and the sync process could be triggered before ngOnDestroy.
@@ -570,7 +568,7 @@ export class AddonCalendarEditEventPage implements OnInit, OnDestroy {
     /**
      * Check if we can leave the page or not.
      *
-     * @return Resolved if we can leave it, rejected if not.
+     * @return {boolean|Promise<void>} Resolved if we can leave it, rejected if not.
      */
     ionViewCanLeave(): boolean | Promise<void> {
 

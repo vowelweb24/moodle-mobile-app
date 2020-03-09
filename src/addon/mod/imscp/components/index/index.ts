@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ export class AddonModImscpIndexComponent extends CoreCourseModuleMainResourceCom
     /**
      * Perform the invalidate content function.
      *
-     * @return Resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
     protected invalidateContent(): Promise<any> {
         return this.imscpProvider.invalidateContent(this.module.id, this.courseId);
@@ -71,15 +71,15 @@ export class AddonModImscpIndexComponent extends CoreCourseModuleMainResourceCom
     /**
      * Download imscp contents.
      *
-     * @param refresh Whether we're refreshing data.
-     * @return Promise resolved when done.
+     * @param  {boolean} [refresh] Whether we're refreshing data.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected fetchContent(refresh?: boolean): Promise<any> {
         let downloadFailed = false;
         const promises = [];
 
         promises.push(this.imscpProvider.getImscp(this.courseId, this.module.id).then((imscp) => {
-            this.description = imscp.intro;
+            this.description = imscp.intro || imscp.description;
             this.dataRetrieved.emit(imscp);
         }));
 
@@ -112,7 +112,7 @@ export class AddonModImscpIndexComponent extends CoreCourseModuleMainResourceCom
                 this.domUtils.showErrorModal('core.errordownloadingsomefiles', true);
             }
 
-        }).finally(() => {
+            // All data obtained, now fill the context menu.
             this.fillContextMenu(refresh);
         });
     }
@@ -120,8 +120,8 @@ export class AddonModImscpIndexComponent extends CoreCourseModuleMainResourceCom
     /**
      * Loads an item.
      *
-     * @param itemId Item ID.
-     * @return Promise resolved when done.
+     * @param  {string} itemId Item ID.
+     * @return {Promise<any>} Promise resolved when done.
      */
     loadItem(itemId: string): Promise<any> {
         return this.imscpProvider.getIframeSrc(this.module, itemId).then((src) => {
@@ -144,7 +144,7 @@ export class AddonModImscpIndexComponent extends CoreCourseModuleMainResourceCom
     /**
      * Show the TOC.
      *
-     * @param event Event.
+     * @param {MouseEvent} event Event.
      */
     showToc(event: MouseEvent): void {
         // Create the toc modal.

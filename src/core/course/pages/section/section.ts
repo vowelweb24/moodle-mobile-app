@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { CoreEventsProvider } from '@providers/events';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreDomUtilsProvider } from '@providers/utils/dom';
+import { CoreTextUtilsProvider } from '@providers/utils/text';
 import { CoreUtilsProvider } from '@providers/utils/utils';
 import { CoreTabsComponent } from '@components/tabs/tabs';
 import { CoreCoursesProvider } from '@core/courses/providers/courses';
@@ -29,7 +30,6 @@ import { CoreCourseOptionsDelegate, CoreCourseOptionsHandlerToDisplay,
     CoreCourseOptionsMenuHandlerToDisplay } from '../../providers/options-delegate';
 import { CoreCourseSyncProvider } from '../../providers/sync';
 import { CoreCourseFormatComponent } from '../../components/format/format';
-import { CoreFilterHelperProvider } from '@core/filter/providers/helper';
 
 /**
  * Page that displays the list of courses the user is enrolled in.
@@ -75,7 +75,7 @@ export class CoreCourseSectionPage implements OnDestroy {
     constructor(navParams: NavParams, private courseProvider: CoreCourseProvider, private domUtils: CoreDomUtilsProvider,
             private courseFormatDelegate: CoreCourseFormatDelegate, private courseOptionsDelegate: CoreCourseOptionsDelegate,
             private translate: TranslateService, private courseHelper: CoreCourseHelperProvider, eventsProvider: CoreEventsProvider,
-            private coursesProvider: CoreCoursesProvider, private filterHelper: CoreFilterHelperProvider,
+            private textUtils: CoreTextUtilsProvider, private coursesProvider: CoreCoursesProvider,
             sitesProvider: CoreSitesProvider, private navCtrl: NavController, private injector: Injector,
             private prefetchDelegate: CoreCourseModulePrefetchDelegate, private syncProvider: CoreCourseSyncProvider,
             private utils: CoreUtilsProvider) {
@@ -187,9 +187,9 @@ export class CoreCourseSectionPage implements OnDestroy {
     /**
      * Fetch and load all the data required for the view.
      *
-     * @param refresh If it's refreshing content.
-     * @param sync If it should try to sync.
-     * @return Promise resolved when done.
+     * @param {boolean} [refresh] If it's refreshing content.
+     * @param {boolean} [sync] If it should try to sync.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected loadData(refresh?: boolean, sync?: boolean): Promise<any> {
         // First of all, get the course because the data might have changed.
@@ -259,14 +259,12 @@ export class CoreCourseSectionPage implements OnDestroy {
                 }
 
                 return promise.then((completionStatus) => {
-                    this.courseHelper.addHandlerDataForModules(sections, this.course.id, completionStatus, this.course.fullname,
-                            true);
+                    this.courseHelper.addHandlerDataForModules(sections, this.course.id, completionStatus, this.course.fullname);
 
                     // Format the name of each section and check if it has content.
                     this.sections = sections.map((section) => {
-                        this.filterHelper.getFiltersAndFormatText(section.name.trim(), 'course', this.course.id,
-                                {clean: true, singleLine: true}).then((result) => {
-                            section.formattedName = result.text;
+                        this.textUtils.formatText(section.name.trim(), true, true).then((name) => {
+                            section.formattedName = name;
                         });
                         section.hasContent = this.courseHelper.sectionHasContent(section);
 
@@ -350,8 +348,8 @@ export class CoreCourseSectionPage implements OnDestroy {
     /**
      * Refresh the data.
      *
-     * @param refresher Refresher.
-     * @return Promise resolved when done.
+     * @param  {any} [refresher] Refresher.
+     * @return {Promise<any>} Promise resolved when done.
      */
     doRefresh(refresher?: any): Promise<any> {
         return this.invalidateData().finally(() => {
@@ -404,7 +402,7 @@ export class CoreCourseSectionPage implements OnDestroy {
     /**
      * Refresh list after a completion change since there could be new activities.
      *
-     * @param sync If it should try to sync.
+     * @param {boolean} [sync] If it should try to sync.
      */
     protected refreshAfterCompletionChange(sync?: boolean): void {
         // Save scroll position to restore it once done.
@@ -430,7 +428,7 @@ export class CoreCourseSectionPage implements OnDestroy {
     /**
      * Determines the prefetch icon of the course.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<void>} Promise resolved when done.
      */
     protected determineCoursePrefetchIcon(): Promise<void> {
         return this.courseHelper.getCourseStatusIconAndTitle(this.course.id).then((data) => {
@@ -462,7 +460,7 @@ export class CoreCourseSectionPage implements OnDestroy {
     /**
      * Update the course status icon and title.
      *
-     * @param status Status to show.
+     * @param {string} status Status to show.
      */
     protected updateCourseStatus(status: string): void {
         const statusData = this.courseHelper.getCourseStatusIconAndTitleFromStatus(status);
@@ -481,7 +479,7 @@ export class CoreCourseSectionPage implements OnDestroy {
     /**
      * Opens a menu item registered to the delegate.
      *
-     * @param item Item to open
+     * @param {CoreCourseMenuHandlerToDisplay} item Item to open
      */
     openMenuItem(item: CoreCourseOptionsMenuHandlerToDisplay): void {
         const params = Object.assign({ course: this.course}, item.data.pageParams);

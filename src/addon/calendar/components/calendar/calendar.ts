@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, OnDestroy, OnInit, Input, OnChanges, DoCheck, SimpleChange, Output, EventEmitter,
-    KeyValueDiffers } from '@angular/core';
+import { Component, OnDestroy, OnInit, Input, OnChanges, SimpleChange, Output, EventEmitter } from '@angular/core';
 import { CoreEventsProvider } from '@providers/events';
 import { CoreLocalNotificationsProvider } from '@providers/local-notifications';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreDomUtilsProvider } from '@providers/utils/dom';
 import { CoreTimeUtilsProvider } from '@providers/utils/time';
 import { CoreUtilsProvider } from '@providers/utils/utils';
-import { AddonCalendarProvider, AddonCalendarWeek } from '../../providers/calendar';
-import { AddonCalendarHelperProvider, AddonCalendarFilter } from '../../providers/helper';
+import { AddonCalendarProvider } from '../../providers/calendar';
+import { AddonCalendarHelperProvider } from '../../providers/helper';
 import { AddonCalendarOfflineProvider } from '../../providers/calendar-offline';
 import { CoreCoursesProvider } from '@core/courses/providers/courses';
 import { CoreAppProvider } from '@providers/app';
@@ -33,10 +32,11 @@ import { CoreAppProvider } from '@providers/app';
     selector: 'addon-calendar-calendar',
     templateUrl: 'addon-calendar-calendar.html',
 })
-export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoCheck, OnDestroy {
+export class AddonCalendarCalendarComponent implements OnInit, OnChanges, OnDestroy {
     @Input() initialYear: number | string; // Initial year to load.
     @Input() initialMonth: number | string; // Initial month to load.
-    @Input() filter: AddonCalendarFilter; // Filter to apply.
+    @Input() courseId: number | string;
+    @Input() categoryId: number | string; // Category ID the course belongs to.
     @Input() canNavigate?: string | boolean; // Whether to include arrows to change the month. Defaults to true.
     @Input() displayNavButtons?: string | boolean; // Whether to display nav buttons created by this component. Defaults to true.
     @Output() onEventClicked = new EventEmitter<number>();
@@ -44,7 +44,7 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
 
     periodName: string;
     weekDays: any[];
-    weeks: AddonCalendarWeek[];
+    weeks: any[];
     loaded = false;
     timeFormat: string;
     isCurrentMonth: boolean;
@@ -59,7 +59,6 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
     protected offlineEditedEventsIds = []; // IDs of events edited in offline.
     protected deletedEvents = []; // Events deleted in offline.
     protected currentTime: number;
-    protected differ: any; // To detect changes in the data input.
 
     // Observers.
     protected undeleteEventObserver: any;
@@ -68,7 +67,6 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
     constructor(eventsProvider: CoreEventsProvider,
             sitesProvider: CoreSitesProvider,
             localNotificationsProvider: CoreLocalNotificationsProvider,
-            differs: KeyValueDiffers,
             private calendarProvider: AddonCalendarProvider,
             private calendarHelper: AddonCalendarHelperProvider,
             private calendarOffline: AddonCalendarOfflineProvider,
@@ -104,8 +102,6 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
                 }
             }
         }, this.currentSiteId);
-
-        this.differ = differs.find([]).create();
     }
 
     /**
@@ -129,26 +125,17 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
         this.canNavigate = typeof this.canNavigate == 'undefined' ? true : this.utils.isTrueOrOne(this.canNavigate);
         this.displayNavButtons = typeof this.displayNavButtons == 'undefined' ? true :
                 this.utils.isTrueOrOne(this.displayNavButtons);
-    }
 
-    /**
-     * Detect and act upon changes that Angular can’t or won’t detect on its own (objects and arrays).
-     */
-    ngDoCheck(): void {
-        if (this.weeks) {
-            // Check if there's any change in the filter object.
-            const changes = this.differ.diff(this.filter);
-            if (changes) {
-                this.filterEvents();
-            }
+        if ((changes.courseId || changes.categoryId) && this.weeks) {
+            this.filterEvents();
         }
     }
 
     /**
      * Fetch contacts.
      *
-     * @param refresh True if we are refreshing events.
-     * @return Promise resolved when done.
+     * @param {boolean} [refresh=false] True if we are refreshing events.
+     * @return {Promise<any>} Promise resolved when done.
      */
     fetchData(refresh: boolean = false): Promise<any> {
         const promises = [];
@@ -197,7 +184,7 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
     /**
      * Fetch the events for current month.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     fetchEvents(): Promise<any> {
         // Don't pass courseId and categoryId, we'll filter them locally.
@@ -251,7 +238,7 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
     /**
      * Load categories to be able to filter events.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected loadCategories(): Promise<any> {
         if (this.categoriesRetrieved) {
@@ -273,12 +260,21 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
     }
 
     /**
-     * Filter events based on the filter popover.
+     * Filter events to only display events belonging to a certain course.
      */
     filterEvents(): void {
+        const courseId = this.courseId ? Number(this.courseId) : undefined,
+            categoryId = this.categoryId ? Number(this.categoryId) : undefined;
+
         this.weeks.forEach((week) => {
             week.days.forEach((day) => {
-                day.filteredEvents = this.calendarHelper.getFilteredEvents(day.events, this.filter, this.categories);
+                if (!courseId || courseId < 0) {
+                    day.filteredEvents = day.events;
+                } else {
+                    day.filteredEvents = day.events.filter((event) => {
+                        return this.calendarHelper.shouldDisplayEvent(event, courseId, categoryId, this.categories);
+                    });
+                }
 
                 // Re-calculate some properties.
                 this.calendarHelper.calculateDayData(day, day.filteredEvents);
@@ -289,8 +285,8 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
     /**
      * Refresh events.
      *
-     * @param afterChange Whether the refresh is done after an event has changed or has been synced.
-     * @return Promise resolved when done.
+     * @param {boolean} [afterChange] Whether the refresh is done after an event has changed or has been synced.
+     * @return {Promise<any>} Promise resolved when done.
      */
     refreshData(afterChange?: boolean): Promise<any> {
         const promises = [];
@@ -344,8 +340,8 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
     /**
      * An event was clicked.
      *
-     * @param calendarEvent Calendar event..
-     * @param event Mouse event.
+     * @param {any} calendarEvent Calendar event..
+     * @param {MouseEvent} event Mouse event.
      */
     eventClicked(calendarEvent: any, event: MouseEvent): void {
         this.onEventClicked.emit(calendarEvent.id);
@@ -355,7 +351,7 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
     /**
      * A day was clicked.
      *
-     * @param day Day.
+     * @param {number} day Day.
      */
     dayClicked(day: number): void {
         this.onDayClicked.emit({day: day, month: this.month, year: this.year});
@@ -465,7 +461,7 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
     /**
      * Sort events by timestart.
      *
-     * @param events List to sort.
+     * @param {any[]} events List to sort.
      */
     protected sortEvents(events: any[]): any[] {
         return events.sort((a, b) => {
@@ -480,7 +476,7 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
     /**
      * Undelete a certain event.
      *
-     * @param eventId Event ID.
+     * @param {number} eventId Event ID.
      */
     protected undeleteEvent(eventId: number): void {
         if (!this.weeks) {
@@ -502,8 +498,8 @@ export class AddonCalendarCalendarComponent implements OnInit, OnChanges, DoChec
 
     /**
      * Returns if the event is in the past or not.
-     * @param event Event object.
-     * @return True if it's in the past.
+     * @param  {any}     event Event object.
+     * @return {boolean}       True if it's in the past.
      */
     isEventPast(event: any): boolean {
         return (event.timestart + event.timeduration) < this.currentTime;

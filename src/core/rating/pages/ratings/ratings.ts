@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ export class CoreRatingRatingsPage {
     /**
      * Fetch all the data required for the view.
      *
-     * @return Resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
     fetchData(): Promise<any> {
         return this.ratingProvider.getItemRatings(this.contextLevel, this.instanceId, this.component, this.ratingArea, this.itemId,
@@ -75,7 +75,7 @@ export class CoreRatingRatingsPage {
     /**
      * Refresh data.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     refreshRatings(refresher: any): void {
         this.ratingProvider.invalidateRatingItems(this.contextLevel, this.instanceId, this.component, this.ratingArea, this.itemId,

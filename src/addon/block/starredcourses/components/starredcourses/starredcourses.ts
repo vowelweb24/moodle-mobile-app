@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 import { Component, OnInit, OnDestroy, Injector, Input, OnChanges, SimpleChange } from '@angular/core';
 import { CoreEventsProvider } from '@providers/events';
+import { CoreUtilsProvider } from '@providers/utils/utils';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreCoursesProvider } from '@core/courses/providers/courses';
 import { CoreCoursesHelperProvider } from '@core/courses/providers/helper';
@@ -37,19 +38,16 @@ export class AddonBlockStarredCoursesComponent extends CoreBlockBaseComponent im
         icon: '',
         badge: ''
     };
-    downloadCourseEnabled: boolean;
-    downloadCoursesEnabled: boolean;
 
     protected prefetchIconsInitialized = false;
     protected isDestroyed;
     protected coursesObserver;
-    protected updateSiteObserver;
     protected courseIds = [];
     protected fetchContentDefaultError = 'Error getting starred courses data.';
 
     constructor(injector: Injector, private coursesProvider: CoreCoursesProvider,
             private courseCompletionProvider: AddonCourseCompletionProvider, private eventsProvider: CoreEventsProvider,
-            private courseHelper: CoreCourseHelperProvider,
+            private courseHelper: CoreCourseHelperProvider, private utils: CoreUtilsProvider,
             private courseOptionsDelegate: CoreCourseOptionsDelegate, private coursesHelper: CoreCoursesHelperProvider,
             private sitesProvider: CoreSitesProvider) {
 
@@ -60,17 +58,6 @@ export class AddonBlockStarredCoursesComponent extends CoreBlockBaseComponent im
      * Component being initialized.
      */
     ngOnInit(): void {
-
-        // Refresh the enabled flags if enabled.
-        this.downloadCourseEnabled = !this.coursesProvider.isDownloadCourseDisabledInSite();
-        this.downloadCoursesEnabled = !this.coursesProvider.isDownloadCoursesDisabledInSite();
-
-        // Refresh the enabled flags if site is updated.
-        this.updateSiteObserver = this.eventsProvider.on(CoreEventsProvider.SITE_UPDATED, () => {
-            this.downloadCourseEnabled = !this.coursesProvider.isDownloadCourseDisabledInSite();
-            this.downloadCoursesEnabled = !this.coursesProvider.isDownloadCoursesDisabledInSite();
-
-        }, this.sitesProvider.getCurrentSiteId());
 
         this.coursesObserver = this.eventsProvider.on(CoreCoursesProvider.EVENT_MY_COURSES_UPDATED, () => {
             this.refreshContent();
@@ -92,7 +79,7 @@ export class AddonBlockStarredCoursesComponent extends CoreBlockBaseComponent im
     /**
      * Perform the invalidate content function.
      *
-     * @return Resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
     protected invalidateContent(): Promise<any> {
         const promises = [];
@@ -117,13 +104,10 @@ export class AddonBlockStarredCoursesComponent extends CoreBlockBaseComponent im
     /**
      * Fetch the courses.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected fetchContent(): Promise<any> {
-        const showCategories = this.block.configs && this.block.configs.displaycategories &&
-            this.block.configs.displaycategories.value == '1';
-
-        return this.coursesHelper.getUserCoursesWithOptions('timemodified', 0, 'isfavourite', showCategories).then((courses) => {
+        return this.coursesHelper.getUserCoursesWithOptions('timemodified', 0, 'isfavourite').then((courses) => {
             this.courses = courses;
 
             this.initPrefetchCoursesIcons();
@@ -149,7 +133,7 @@ export class AddonBlockStarredCoursesComponent extends CoreBlockBaseComponent im
     /**
      * Prefetch all the shown courses.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     prefetchCourses(): Promise<any> {
         const initialIcon = this.prefetchCoursesData.icon;
@@ -168,6 +152,5 @@ export class AddonBlockStarredCoursesComponent extends CoreBlockBaseComponent im
     ngOnDestroy(): void {
         this.isDestroyed = true;
         this.coursesObserver && this.coursesObserver.off();
-        this.updateSiteObserver && this.updateSiteObserver.off();
     }
 }

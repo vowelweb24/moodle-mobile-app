@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import { CoreTextUtilsProvider } from '@providers/utils/text';
 import { CoreEventsProvider, CoreEventObserver } from '@providers/events';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreUtilsProvider } from '@providers/utils/utils';
-import { AddonNotificationsProvider, AddonNotificationsAnyNotification } from '../../providers/notifications';
+import { AddonNotificationsProvider } from '../../providers/notifications';
 import { AddonNotificationsHelperProvider } from '../../providers/helper';
 import { CorePushNotificationsDelegate } from '@core/pushnotifications/providers/delegate';
 
@@ -34,7 +34,7 @@ import { CorePushNotificationsDelegate } from '@core/pushnotifications/providers
 })
 export class AddonNotificationsListPage {
 
-    notifications: AddonNotificationsAnyNotification[] = [];
+    notifications = [];
     notificationsLoaded = false;
     canLoadMore = false;
     loadMoreError = false;
@@ -82,8 +82,8 @@ export class AddonNotificationsListPage {
     /**
      * Convenience function to get notifications. Gets unread notifications first.
      *
-     * @param refreh Whether we're refreshing data.
-     * @return Resolved when done.
+     * @param {boolean} refreh Whether we're refreshing data.
+     * @return {Promise<any>} Resolved when done.
      */
     protected fetchNotifications(refresh?: boolean): Promise<any> {
         this.loadMoreError = false;
@@ -128,14 +128,13 @@ export class AddonNotificationsListPage {
     /**
      * Mark notifications as read.
      *
-     * @param notifications Array of notification objects.
+     * @param {any[]} notifications Array of notification objects.
      */
-    protected markNotificationsAsRead(notifications: AddonNotificationsAnyNotification[]): void {
-
+    protected markNotificationsAsRead(notifications: any[]): void {
         let promise;
 
         if (notifications.length > 0) {
-            const promises: Promise<any>[] = notifications.map((notification) => {
+            const promises = notifications.map((notification) => {
                 if (notification.read) {
                     // Already read, don't mark it.
                     return Promise.resolve();
@@ -174,7 +173,7 @@ export class AddonNotificationsListPage {
     /**
      * Refresh notifications.
      *
-     * @param refresher Refresher.
+     * @param {any} [refresher] Refresher.
      * @return Promise<any> Promise resolved when done.
      */
     refreshNotifications(refresher?: any): Promise<any> {
@@ -190,7 +189,7 @@ export class AddonNotificationsListPage {
     /**
      * Load more results.
      *
-     * @param infiniteComplete Infinite scroll complete function. Only used from core-infinite-loading.
+     * @param {any} [infiniteComplete] Infinite scroll complete function. Only used from core-infinite-loading.
      */
     loadMoreNotifications(infiniteComplete?: any): void {
         this.fetchNotifications().finally(() => {
@@ -201,9 +200,9 @@ export class AddonNotificationsListPage {
     /**
      * Formats the text of a notification.
      *
-     * @param notification The notification object.
+     * @param {any} notification The notification object.
      */
-    protected formatText(notification: AddonNotificationsAnyNotification): void {
+    protected formatText(notification: any): void {
         const text = notification.mobiletext.replace(/-{4,}/ig, '');
         notification.mobiletext = this.textUtils.replaceNewLines(text, '<br>');
     }

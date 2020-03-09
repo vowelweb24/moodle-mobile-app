@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,22 +46,38 @@ export class AddonModResourceHelperProvider {
     /**
      * Get the HTML to display an embedded resource.
      *
-     * @param module The module object.
-     * @param courseId The course ID.
-     * @return Promise resolved with the HTML.
+     * @param {any} module The module object.
+     * @param {number} courseId The course ID.
+     * @return {Promise<any>} Promise resolved with the HTML.
      */
     getEmbeddedHtml(module: any, courseId: number): Promise<any> {
         return this.courseHelper.downloadModuleWithMainFileIfNeeded(module, courseId, AddonModResourceProvider.COMPONENT,
                 module.id, module.contents).then((result) => {
-            return this.mimetypeUtils.getEmbeddedHtml(module.contents[0], result.path);
+            const file = module.contents[0],
+                ext = this.mimetypeUtils.getFileExtension(file.filename),
+                type = this.mimetypeUtils.getExtensionType(ext),
+                mimeType = this.mimetypeUtils.getMimeType(ext);
+
+            if (type == 'image') {
+                return '<img src="' + result.path + '"></img>';
+            }
+
+            if (type == 'audio' || type == 'video') {
+                return '<' + type + ' controls title="' + file.filename + '"" src="' + result.path + '">' +
+                    '<source src="' + result.path + '" type="' + mimeType + '">' +
+                    '</' + type + '>';
+            }
+
+            // Shouldn't reach here, the user should have called CoreMimetypeUtilsProvider#canBeEmbedded.
+            return '';
         });
     }
 
     /**
      * Download all the files needed and returns the src of the iframe.
      *
-     * @param module The module object.
-     * @return Promise resolved with the iframe src.
+     * @param {any} module The module object.
+     * @return {Promise<string>} Promise resolved with the iframe src.
      */
     getIframeSrc(module: any): Promise<string> {
         if (!module.contents.length) {
@@ -82,7 +98,7 @@ export class AddonModResourceHelperProvider {
             // Error getting directory, there was an error downloading or we're in browser. Return online URL.
             if (this.appProvider.isOnline() && mainFile.fileurl) {
                 // This URL is going to be injected in an iframe, we need this to make it work.
-                return this.sitesProvider.getCurrentSite().checkAndFixPluginfileURL(mainFile.fileurl);
+                return Promise.resolve(this.sitesProvider.getCurrentSite().fixPluginfileURL(mainFile.fileurl));
             }
 
             return Promise.reject(null);
@@ -92,9 +108,9 @@ export class AddonModResourceHelperProvider {
     /**
      * Whether the resource has to be displayed embedded.
      *
-     * @param module The module object.
-     * @param display The display mode (if available).
-     * @return Whether the resource should be displayed embeded.
+     * @param {any} module    The module object.
+     * @param {number} [display] The display mode (if available).
+     * @return {boolean}         Whether the resource should be displayed embeded.
      */
     isDisplayedEmbedded(module: any, display: number): boolean {
         if ((!module.contents.length && !module.contentsinfo) || !this.fileProvider.isAvailable() ||
@@ -116,8 +132,8 @@ export class AddonModResourceHelperProvider {
     /**
      * Whether the resource has to be displayed in an iframe.
      *
-     * @param module The module object.
-     * @return Whether the resource should be displayed in an iframe.
+     * @param {any} module The module object.
+     * @return {boolean}   Whether the resource should be displayed in an iframe.
      */
     isDisplayedInIframe(module: any): boolean {
         if ((!module.contents.length && !module.contentsinfo) || !this.fileProvider.isAvailable()) {
@@ -139,8 +155,8 @@ export class AddonModResourceHelperProvider {
     /**
      * Check if the resource is a Nextcloud file.
      *
-     * @param module Module to check.
-     * @return Whether it's a Nextcloud file.
+     * @param {any} module Module to check.
+     * @return {boolean} Whether it's a Nextcloud file.
      */
     isNextcloudFile(module: any): boolean {
         if (module.contentsinfo) {
@@ -153,9 +169,9 @@ export class AddonModResourceHelperProvider {
     /**
      * Opens a file of the resource activity.
      *
-     * @param module Module where to get the contents.
-     * @param courseId Course Id, used for completion purposes.
-     * @return Resolved when done.
+     * @param  {any} module        Module where to get the contents.
+     * @param  {number} courseId   Course Id, used for completion purposes.
+     * @return {Promise<any>}      Resolved when done.
      */
     openModuleFile(module: any, courseId: number): Promise<any> {
         const modal = this.domUtils.showModalLoading();

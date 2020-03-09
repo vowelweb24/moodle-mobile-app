@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import { CoreCourseOptionsDelegate } from '@core/course/providers/options-delega
 import { CoreContentLinksDelegate } from '@core/contentlinks/providers/delegate';
 import { CoreTagAreaDelegate } from '@core/tag/providers/area-delegate';
 import { AddonBlogProvider } from './providers/blog';
-import { AddonBlogMainMenuHandler } from './providers/mainmenu-handler';
-import { AddonBlogUserHandler } from './providers/user-handler';
+// import { AddonBlogMainMenuHandler } from './providers/mainmenu-handler';
+// import { AddonBlogUserHandler } from './providers/user-handler';
 import { AddonBlogCourseOptionHandler } from './providers/course-option-handler';
 import { AddonBlogComponentsModule } from './components/components.module';
 import { AddonBlogIndexLinkHandler } from './providers/index-link-handler';
@@ -34,21 +34,23 @@ import { AddonBlogTagAreaHandler } from './providers/tag-area-handler';
     ],
     providers: [
         AddonBlogProvider,
-        AddonBlogMainMenuHandler,
-        AddonBlogUserHandler,
+        // AddonBlogMainMenuHandler,
+        // AddonBlogUserHandler,
         AddonBlogCourseOptionHandler,
         AddonBlogIndexLinkHandler,
         AddonBlogTagAreaHandler
     ]
 })
 export class AddonBlogModule {
-    constructor(mainMenuDelegate: CoreMainMenuDelegate, menuHandler: AddonBlogMainMenuHandler,
-            userHandler: AddonBlogUserHandler, userDelegate: CoreUserDelegate,
+    constructor(mainMenuDelegate: CoreMainMenuDelegate,
+        //  menuHandler: AddonBlogMainMenuHandler,
+            // userHandler: AddonBlogUserHandler, 
+            userDelegate: CoreUserDelegate,
             courseOptionHandler: AddonBlogCourseOptionHandler, courseOptionsDelegate: CoreCourseOptionsDelegate,
             linkHandler: AddonBlogIndexLinkHandler, contentLinksDelegate: CoreContentLinksDelegate,
             tagAreaDelegate: CoreTagAreaDelegate, tagAreaHandler: AddonBlogTagAreaHandler) {
-        mainMenuDelegate.registerHandler(menuHandler);
-        userDelegate.registerHandler(userHandler);
+        // mainMenuDelegate.registerHandler(menuHandler);
+        // userDelegate.registerHandler(userHandler);
         courseOptionsDelegate.registerHandler(courseOptionHandler);
         contentLinksDelegate.registerHandler(linkHandler);
         tagAreaDelegate.registerHandler(tagAreaHandler);

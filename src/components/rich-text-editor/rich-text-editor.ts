@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -153,7 +153,7 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
     /**
      * Resize editor to maximize the space occupied.
      *
-     * @return Resolved with calculated editor size.
+     * @return {Promise<number>} Resolved with calculated editor size.
      */
     protected maximizeEditorSize = (): Promise<number> => {
         this.content.resize();
@@ -180,19 +180,18 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
                 if (this.platform.is('android')) {
                     // In Android we ignore the keyboard height because it is not part of the web view.
                     height = this.domUtils.getContentHeight(this.content) - this.getSurroundingHeight(this.element);
-                } else if (this.platform.is('ios') && this.kbHeight > 0 && this.platform.version().major < 12) {
-                    // Keyboard open in iOS 11 or previous. The window height changes when the keyboard is open.
+                } else if (this.platform.is('ios') && this.kbHeight > 0) {
+                    // Keyboard open in iOS.
+                    // In this case, the header disappears or is scrollable, so we need to adjust the calculations.
                     height = window.innerHeight - this.getSurroundingHeight(this.element);
 
                     if (this.element.getBoundingClientRect().top < 40) {
                         // In iOS sometimes the editor is placed below the status bar. Move the scroll a bit so it doesn't happen.
                         window.scrollTo(window.scrollX, window.scrollY - 40);
                     }
-
                 } else {
                     // Header is fixed, use the content to calculate the editor height.
                     height = this.domUtils.getContentHeight(this.content) - this.kbHeight - this.getSurroundingHeight(this.element);
-
                 }
 
                 if (height > this.minHeight) {
@@ -211,8 +210,8 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
     /**
      * Get the height of the surrounding elements from the current to the top element.
      *
-     * @param element Directive DOM element to get surroundings elements from.
-     * @return Surrounding height in px.
+     * @param  {any} element Directive DOM element to get surroundings elements from.
+     * @return {number}      Surrounding height in px.
      */
     protected getSurroundingHeight(element: any): number {
         let height = 0;
@@ -247,7 +246,7 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
     /**
      * On change function to sync with form data.
      *
-     * @param $event The event.
+     * @param {Event} $event The event.
      */
     onChange($event: Event): void {
         if (this.rteEnabled) {
@@ -280,7 +279,7 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
      * On key down function to move the cursor.
      * https://stackoverflow.com/questions/6249095/how-to-set-caretcursor-position-in-contenteditable-element-div
      *
-     * @param $event The event.
+     * @param {Event} $event The event.
      */
     moveCursor($event: Event): void {
         if (!this.rteEnabled) {
@@ -303,8 +302,8 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
     /**
      * Returns the number of chars from the beggining where is placed the cursor.
      *
-     * @param parent Parent where to get the position from.
-     * @return Position in chars.
+     * @param  {Node}   parent Parent where to get the position from.
+     * @return {number}        Position in chars.
      */
     protected getCurrentCursorPosition(parent: Node): number {
         const selection = window.getSelection();
@@ -341,18 +340,18 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
     /**
      * Set the caret position on the character number.
      *
-     * @param parent Parent where to set the position.
-     * @param chars Number of chars where to place the caret. If not defined it will go to the end.
+     * @param {Node}   parent   Parent where to set the position.
+     * @param {number} [chars]  Number of chars where to place the caret. If not defined it will go to the end.
      */
     protected setCurrentCursorPosition(parent: Node, chars?: number): void {
         /**
          * Loops round all the child text nodes within the supplied node and sets a range from the start of the initial node to
          * the characters.
          *
-         * @param node Node where to start.
-         * @param range Previous calculated range.
-         * @param chars Object with counting of characters (input-output param).
-         * @return Selection range.
+         * @param  {Node}  node  Node where to start.
+         * @param  {Range} range Previous calculated range.
+         * @param  {any}   chars Object with counting of characters (input-output param).
+         * @return {Range}       Selection range.
          */
         const setRange = (node: Node, range: Range, chars: any): Range => {
             if (chars.count === 0) {
@@ -405,7 +404,7 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
     /**
      * Toggle from rte editor to textarea syncing values.
      *
-     * @param $event The event.
+     * @param {Event} $event The event.
      */
     toggleEditor($event: Event): void {
         $event.preventDefault();
@@ -482,7 +481,7 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
 
     /**
      * Check if text is empty.
-     * @param value text
+     * @param {string} value text
      */
     protected isNullOrWhiteSpace(value: string): boolean {
         if (value == null || typeof value == 'undefined') {
@@ -498,7 +497,7 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
     /**
      * Set the content of the textarea and the editor element.
      *
-     * @param value New content.
+     * @param {string} value New content.
      */
     protected setContent(value: string): void {
         if (this.isNullOrWhiteSpace(value)) {
@@ -531,8 +530,8 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
      * Execute an action over the selected text.
      *  API docs: https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand
      *
-     * @param $event Event data
-     * @param command Command to execute.
+     * @param {any} $event Event data
+     * @param {string} command Command to execute.
      */
     buttonAction($event: any, command: string): void {
         this.stopBubble($event);
@@ -550,14 +549,12 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
     }
 
     /**
-     * Hide the toolbar in phone mode.
+     * Hide the toolbar.
      */
     hideToolbar($event: any): void {
         this.stopBubble($event);
 
-        if (this.isPhone) {
-            this.toolbarHidden = true;
-        }
+        this.toolbarHidden = true;
     }
 
     /**
@@ -571,7 +568,7 @@ export class CoreRichTextEditorComponent implements AfterContentInit, OnDestroy 
     /**
      * Stop event default and propagation.
      *
-     * @param event Event.
+     * @param {Event} event Event.
      */
     stopBubble(event: Event): void {
         event.preventDefault();

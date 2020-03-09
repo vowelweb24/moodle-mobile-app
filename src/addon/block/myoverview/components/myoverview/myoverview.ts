@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 import { Component, OnInit, Input, OnDestroy, ViewChild, Injector, OnChanges, SimpleChange } from '@angular/core';
 import { Searchbar } from 'ionic-angular';
 import { CoreEventsProvider } from '@providers/events';
+import { CoreUtilsProvider } from '@providers/utils/utils';
 import { CoreTimeUtilsProvider } from '@providers/utils/time';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreCoursesProvider } from '@core/courses/providers/courses';
@@ -38,44 +39,36 @@ export class AddonBlockMyOverviewComponent extends CoreBlockBaseComponent implem
     courses = {
         filter: '',
         all: [],
-        allincludinghidden: [],
         past: [],
         inprogress: [],
         future: [],
         favourite: [],
-        hidden: [],
-        custom: [], // Leave it empty to avoid download all those courses.
+        hidden: []
     };
-    customFilter: any[] = [];
     selectedFilter = 'inprogress';
     sort = 'fullname';
     currentSite: any;
-    filteredCourses: any[] = [];
+    filteredCourses: any[];
     prefetchCoursesData = {
         all: {},
-        allincludinghidden: {},
         inprogress: {},
         past: {},
         future: {},
         favourite: {},
-        hidden: {},
-        custom: {}, // Leave it empty to avoid download all those courses.
-    };
-    showFilters = { // Options are show, disabled, hidden.
-        all: 'show',
-        allincludinghidden: 'show',
-        past: 'show',
-        inprogress: 'show',
-        future: 'show',
-        favourite: 'show',
-        hidden: 'show',
-        custom: 'hidden',
+        hidden: {}
     };
     showFilter = false;
+    showFavourite = false;
+    showHidden = false;
     showSelectorFilter = false;
     showSortFilter = false;
     downloadCourseEnabled: boolean;
     downloadCoursesEnabled: boolean;
+    disableInProgress = false;
+    disablePast = false;
+    disableFuture = false;
+    disableFavourite = false;
+    disableHidden = false;
 
     protected prefetchIconsInitialized = false;
     protected isDestroyed;
@@ -84,15 +77,11 @@ export class AddonBlockMyOverviewComponent extends CoreBlockBaseComponent implem
     protected courseIds = [];
     protected fetchContentDefaultError = 'Error getting my overview data.';
 
-    constructor(injector: Injector,
-            protected coursesProvider: CoreCoursesProvider,
-            protected courseCompletionProvider: AddonCourseCompletionProvider,
-            protected eventsProvider: CoreEventsProvider,
-            protected courseHelper: CoreCourseHelperProvider,
-            protected courseOptionsDelegate: CoreCourseOptionsDelegate,
-            protected coursesHelper: CoreCoursesHelperProvider,
-            protected sitesProvider: CoreSitesProvider,
-            protected timeUtils: CoreTimeUtilsProvider) {
+    constructor(injector: Injector, private coursesProvider: CoreCoursesProvider,
+            private courseCompletionProvider: AddonCourseCompletionProvider, private eventsProvider: CoreEventsProvider,
+            private courseHelper: CoreCourseHelperProvider, private utils: CoreUtilsProvider,
+            private courseOptionsDelegate: CoreCourseOptionsDelegate, private coursesHelper: CoreCoursesHelperProvider,
+            private sitesProvider: CoreSitesProvider, private timeUtils: CoreTimeUtilsProvider) {
 
         super(injector, 'AddonBlockMyOverviewComponent');
     }
@@ -123,7 +112,7 @@ export class AddonBlockMyOverviewComponent extends CoreBlockBaseComponent implem
             this.sort = value;
         }));
         promises.push(this.currentSite.getLocalSiteConfig('AddonBlockMyOverviewFilter', this.selectedFilter).then((value) => {
-            this.selectedFilter = value;
+            this.selectedFilter = typeof this.courses[value] == 'undefined' ? 'inprogress' : value;
         }));
 
         Promise.all(promises).finally(() => {
@@ -144,7 +133,7 @@ export class AddonBlockMyOverviewComponent extends CoreBlockBaseComponent implem
     /**
      * Perform the invalidate content function.
      *
-     * @return Resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
     protected invalidateContent(): Promise<any> {
         const promises = [];
@@ -172,14 +161,10 @@ export class AddonBlockMyOverviewComponent extends CoreBlockBaseComponent implem
     /**
      * Fetch the courses for my overview.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected fetchContent(): Promise<any> {
-        const config = this.block.configs;
-
-        const showCategories = config && config.displaycategories && config.displaycategories.value == '1';
-
-        return this.coursesHelper.getUserCoursesWithOptions(this.sort, null, null, showCategories).then((courses) => {
+        return this.coursesHelper.getUserCoursesWithOptions(this.sort).then((courses) => {
             this.courseIds = courses.map((course) => {
                     return course.id;
                 });
@@ -188,94 +173,45 @@ export class AddonBlockMyOverviewComponent extends CoreBlockBaseComponent implem
 
             this.initCourseFilters(courses);
 
-            this.showSelectorFilter = courses.length > 0 && (this.courses.past.length > 0 || this.courses.future.length > 0 ||
-                   typeof courses[0].enddate != 'undefined');
-
             this.courses.filter = '';
             this.showFilter = false;
-
-            this.showFilters.all = this.getShowFilterValue(!config || config.displaygroupingall.value == '1',
-                    this.courses.all.length === 0);
-            // Do not show allincludinghiddenif config it's not present (before 3.8).
-            this.showFilters.allincludinghidden =
-                this.getShowFilterValue(config && config.displaygroupingallincludinghidden.value == '1',
-                    this.courses.allincludinghidden.length === 0);
-
-            this.showFilters.inprogress = this.getShowFilterValue(!config || config.displaygroupinginprogress.value == '1',
-                this.courses.inprogress.length === 0);
-            this.showFilters.past = this.getShowFilterValue(!config || config.displaygroupingpast.value == '1',
-                this.courses.past.length === 0);
-            this.showFilters.future = this.getShowFilterValue(!config || config.displaygroupingfuture.value == '1',
-                this.courses.future.length === 0);
-
+            this.disableInProgress = this.courses.inprogress.length === 0;
+            this.disablePast = this.courses.past.length === 0;
+            this.disableFuture = this.courses.future.length === 0;
             this.showSelectorFilter = courses.length > 0 && (this.courses.past.length > 0 || this.courses.future.length > 0 ||
                    typeof courses[0].enddate != 'undefined');
-
-            this.showFilters.hidden = this.getShowFilterValue(
-                this.showSelectorFilter && typeof courses[0].hidden != 'undefined' &&
-                    (!config || config.displaygroupinghidden.value == '1'),
-                this.courses.hidden.length === 0);
-
-            this.showFilters.favourite = this.getShowFilterValue(
-                this.showSelectorFilter && typeof courses[0].isfavourite != 'undefined' &&
-                    (!config || config.displaygroupingstarred.value == '1'),
-                this.courses.favourite.length === 0);
-
-            this.showFilters.custom = this.getShowFilterValue(this.showSelectorFilter && config &&
-                    config.displaygroupingcustomfield.value == '1' && config.customfieldsexport && config.customfieldsexport.value,
-                    false);
-            if (this.showFilters.custom == 'show') {
-                this.customFilter = this.textUtils.parseJSON(config.customfieldsexport.value);
-            } else {
-                this.customFilter = [];
-            }
-
-            if (this.showSelectorFilter) {
-                // Check if any selector is shown and not disabled.
-                this.showSelectorFilter = Object.keys(this.showFilters).some((key) => {
-                    return this.showFilters[key] == 'show';
-                });
-            }
-
-            if (!this.showSelectorFilter || (this.selectedFilter === 'inprogress' && this.showFilters.inprogress == 'disabled')) {
+            this.showHidden = this.showSelectorFilter && typeof courses[0].hidden != 'undefined';
+            this.disableHidden = this.courses.hidden.length === 0;
+            this.showFavourite = this.showSelectorFilter && typeof courses[0].isfavourite != 'undefined';
+            this.disableFavourite = this.courses.favourite.length === 0;
+            if (!this.showSelectorFilter || (this.selectedFilter === 'inprogress' && this.disableInProgress)) {
                 // No selector, or the default option is disabled, show all.
                 this.selectedFilter = 'all';
             }
-            this.setCourseFilter(this.selectedFilter);
+            this.filteredCourses = this.courses[this.selectedFilter];
 
             this.initPrefetchCoursesIcons();
         });
     }
 
     /**
-     * Helper function to help with filter values.
-     *
-     * @param  showCondition     If true, filter will be shown.
-     * @param  disabledCondition If true, and showCondition is also met, it will be shown as disabled.
-     * @return                   show / disabled / hidden value.
-     */
-    protected getShowFilterValue(showCondition: boolean, disabledCondition: boolean): string {
-        return showCondition ? (disabledCondition ? 'disabled' : 'show') : 'hidden';
-    }
-
-    /**
      * The filter has changed.
      *
-     * @param Received Event.
+     * @param {any} Received Event.
      */
     filterChanged(event: any): void {
         const newValue = event.target.value && event.target.value.trim().toLowerCase();
-        if (!newValue || this.courses.allincludinghidden.length <= 0) {
-            this.filteredCourses = this.courses.allincludinghidden;
+        if (!newValue || !this.courses['all']) {
+            this.filteredCourses = this.courses['all'];
         } else {
             // Use displayname if avalaible, or fullname if not.
-            if (this.courses.allincludinghidden.length > 0 &&
-                    typeof this.courses.allincludinghidden[0].displayname != 'undefined') {
-                this.filteredCourses = this.courses.allincludinghidden.filter((course) => {
+            if (this.courses['all'].length > 0 &&
+                    typeof this.courses['all'][0].displayname != 'undefined') {
+                this.filteredCourses = this.courses['all'].filter((course) => {
                     return course.displayname.toLowerCase().indexOf(newValue) > -1;
                 });
             } else {
-                this.filteredCourses = this.courses.allincludinghidden.filter((course) => {
+                this.filteredCourses = this.courses['all'].filter((course) => {
                     return course.fullname.toLowerCase().indexOf(newValue) > -1;
                 });
             }
@@ -303,7 +239,7 @@ export class AddonBlockMyOverviewComponent extends CoreBlockBaseComponent implem
     /**
      * Prefetch all the shown courses.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     prefetchCourses(): Promise<any> {
         const selected = this.selectedFilter,
@@ -321,60 +257,16 @@ export class AddonBlockMyOverviewComponent extends CoreBlockBaseComponent implem
      * The selected courses filter have changed.
      */
     selectedChanged(): void {
-        this.setCourseFilter(this.selectedFilter);
-    }
-
-    /**
-     * Set selected courses filter.
-     *
-     * @param filter Filter name to set.
-     */
-    protected setCourseFilter(filter: string): void {
-        this.selectedFilter = filter;
-
-        if (this.showFilters.custom == 'show' && filter.startsWith('custom-') &&
-                typeof this.customFilter[filter.substr(7)] != 'undefined') {
-            const filterName = this.block.configs.customfiltergrouping.value,
-                filterValue = this.customFilter[filter.substr(7)].value;
-
-            this.loaded = false;
-
-            this.coursesProvider.getEnrolledCoursesByCustomField(filterName, filterValue).then((courses) => {
-                // Get the courses information from allincludinghidden to get the max info about the course.
-                const courseIds = courses.map((course) => course.id);
-                this.filteredCourses = this.courses.allincludinghidden.filter((allCourse) =>
-                    courseIds.indexOf(allCourse.id) !== -1);
-            }).catch((error) => {
-                this.domUtils.showErrorModalDefault(error, this.fetchContentDefaultError);
-            }).finally(() => {
-                this.loaded = true;
-            });
-        } else {
-            // Only save the filter if not a custom one.
-            this.currentSite.setLocalSiteConfig('AddonBlockMyOverviewFilter', filter);
-
-            if (this.showFilters[filter] == 'show') {
-                this.filteredCourses = this.courses[filter];
-            } else {
-                const activeFilter = Object.keys(this.showFilters).find((name) => {
-                    return this.showFilters[name] == 'show';
-                });
-
-                if (activeFilter) {
-                    this.setCourseFilter(activeFilter);
-                }
-            }
-        }
+        this.currentSite.setLocalSiteConfig('AddonBlockMyOverviewFilter', this.selectedFilter);
+        this.filteredCourses = this.courses[this.selectedFilter];
     }
 
     /**
      * Init courses filters.
      *
-     * @param courses Courses to filter.
+     * @param {any[]} courses Courses to filter.
      */
     initCourseFilters(courses: any[]): void {
-        this.courses.allincludinghidden = courses;
-
         if (this.showSortFilter) {
                 if (this.sort == 'lastaccess') {
                 courses.sort((a, b) => {
@@ -421,18 +313,18 @@ export class AddonBlockMyOverviewComponent extends CoreBlockBaseComponent implem
             }
         });
 
-        this.setCourseFilter(this.selectedFilter);
+        this.filteredCourses = this.courses[this.selectedFilter];
     }
 
     /**
      * The selected courses sort filter have changed.
      *
-     * @param sort New sorting.
+     * @param {string} sort New sorting.
      */
     switchSort(sort: string): void {
         this.sort = sort;
         this.currentSite.setLocalSiteConfig('AddonBlockMyOverviewSort', this.sort);
-        this.initCourseFilters(this.courses.allincludinghidden);
+        this.initCourseFilters(this.courses.all.concat(this.courses.hidden));
     }
 
     /**
@@ -441,32 +333,21 @@ export class AddonBlockMyOverviewComponent extends CoreBlockBaseComponent implem
     switchFilter(): void {
         this.showFilter = !this.showFilter;
         this.courses.filter = '';
-
-        if (this.showFilter) {
-            this.filteredCourses = this.courses.allincludinghidden;
-        } else {
-            this.setCourseFilter(this.selectedFilter);
-        }
-    }
-
-    /**
-     * Popover closed after clicking switch filter.
-     */
-    switchFilterClosed(): void {
+        this.filteredCourses = this.courses[this.showFilter ? 'all' : this.selectedFilter];
         if (this.showFilter) {
             setTimeout(() => {
                 this.searchbar.setFocus();
-            });
+            }, 500);
         }
     }
 
     /**
      * If switch button that enables the filter input is shown or not.
      *
-     * @return If switch button that enables the filter input is shown or not.
+     * @return {boolean} If switch button that enables the filter input is shown or not.
      */
     showFilterSwitchButton(): boolean {
-        return this.loaded && this.courses.allincludinghidden && this.courses.allincludinghidden.length > 5;
+        return this.loaded && this.courses['all'] && this.courses['all'].length > 5;
     }
 
     /**

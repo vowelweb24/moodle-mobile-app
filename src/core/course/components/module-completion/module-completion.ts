@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChange } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { CoreDomUtilsProvider } from '@providers/utils/dom';
+import { CoreTextUtilsProvider } from '@providers/utils/text';
 import { CoreUserProvider } from '@core/user/providers/user';
 import { CoreCourseProvider } from '../../providers/course';
-import { CoreFilterHelperProvider } from '@core/filter/providers/helper';
 
 /**
  * Component to handle activity completion. It shows a checkbox with the current status, and allows manually changing
@@ -34,14 +34,13 @@ import { CoreFilterHelperProvider } from '@core/filter/providers/helper';
 })
 export class CoreCourseModuleCompletionComponent implements OnChanges {
     @Input() completion: any; // The completion status.
-    @Input() moduleId?: number; // The name of the module this completion affects.
     @Input() moduleName?: string; // The name of the module this completion affects.
     @Output() completionChanged?: EventEmitter<any>; // Will emit an event when the completion changes.
 
     completionImage: string;
     completionDescription: string;
 
-    constructor(private filterHelper: CoreFilterHelperProvider, private domUtils: CoreDomUtilsProvider,
+    constructor(private textUtils: CoreTextUtilsProvider, private domUtils: CoreDomUtilsProvider,
             private translate: TranslateService, private courseProvider: CoreCourseProvider,
             private userProvider: CoreUserProvider) {
         this.completionChanged = new EventEmitter();
@@ -59,7 +58,7 @@ export class CoreCourseModuleCompletionComponent implements OnChanges {
     /**
      * Completion clicked.
      *
-     * @param e The click event.
+     * @param {Event} e The click event.
      */
     completionClicked(e: Event): void {
         if (this.completion) {
@@ -138,9 +137,7 @@ export class CoreCourseModuleCompletionComponent implements OnChanges {
         }
 
         if (moduleName) {
-            this.filterHelper.getFiltersAndFormatText(moduleName, 'module', this.moduleId,
-                    {clean: true, singleLine: true, shortenLength: 50, courseId: this.completion.courseId}).then((result) => {
-
+            this.textUtils.formatText(moduleName, true, true, 50).then((modNameFormatted) => {
                 let promise;
 
                 if (this.completion.overrideby > 0) {
@@ -150,11 +147,11 @@ export class CoreCourseModuleCompletionComponent implements OnChanges {
                         (profile) => {
                             return {
                                 overrideuser: profile.fullname,
-                                modname: result.text
+                                modname: modNameFormatted
                             };
                         });
                 } else {
-                    promise = Promise.resolve(result.text);
+                    promise = Promise.resolve(modNameFormatted);
                 }
 
                 return promise.then((translateParams) => {

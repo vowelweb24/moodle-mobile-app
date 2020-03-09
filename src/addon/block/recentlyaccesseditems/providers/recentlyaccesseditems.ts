@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ export class AddonBlockRecentlyAccessedItemsProvider {
     /**
      * Get cache key for get last accessed items value WS call.
      *
-     * @return Cache key.
+     * @return {string} Cache key.
      */
     protected getRecentItemsCacheKey(): string {
         return this.ROOT_CACHE_KEY + ':recentitems';
@@ -39,19 +39,17 @@ export class AddonBlockRecentlyAccessedItemsProvider {
     /**
      * Get last accessed items.
      *
-     * @param siteId Site ID. If not defined, use current site.
-     * @return Promise resolved when the info is retrieved.
+     * @param {string} [siteId] Site ID. If not defined, use current site.
+     * @return {Promise<any[]>} Promise resolved when the info is retrieved.
      */
-    getRecentItems(siteId?: string): Promise<AddonBlockRecentlyAccessedItemsItem[]> {
+    getRecentItems(siteId?: string): Promise<any[]> {
 
         return this.sitesProvider.getSite(siteId).then((site) => {
             const preSets = {
                     cacheKey: this.getRecentItemsCacheKey()
                 };
 
-            return site.read('block_recentlyaccesseditems_get_recent_items', undefined, preSets)
-                    .then((items: AddonBlockRecentlyAccessedItemsItem[]) => {
-
+            return site.read('block_recentlyaccesseditems_get_recent_items', undefined, preSets).then((items) => {
                 return items.map((item) => {
                     const modicon = item.icon && this.domUtils.getHTMLElementAttribute(item.icon, 'src');
                     item.iconUrl = this.courseProvider.getModuleIconSrc(item.modname, modicon);
@@ -65,8 +63,8 @@ export class AddonBlockRecentlyAccessedItemsProvider {
     /**
      * Invalidates get last accessed items WS call.
      *
-     * @param siteId Site ID to invalidate. If not defined, use current site.
-     * @return Promise resolved when the data is invalidated.
+     * @param {string} [siteId] Site ID to invalidate. If not defined, use current site.
+     * @return {Promise<any>} Promise resolved when the data is invalidated.
      */
     invalidateRecentItems(siteId?: string): Promise<any> {
         return this.sitesProvider.getSite(siteId).then((site) => {
@@ -74,27 +72,3 @@ export class AddonBlockRecentlyAccessedItemsProvider {
         });
     }
 }
-
-/**
- * Result of WS block_recentlyaccesseditems_get_recent_items.
- */
-export type AddonBlockRecentlyAccessedItemsItem = {
-    id: number; // Id.
-    courseid: number; // Courseid.
-    cmid: number; // Cmid.
-    userid: number; // Userid.
-    modname: string; // Modname.
-    name: string; // Name.
-    coursename: string; // Coursename.
-    timeaccess: number; // Timeaccess.
-    viewurl: string; // Viewurl.
-    courseviewurl: string; // Courseviewurl.
-    icon: string; // Icon.
-} & AddonBlockRecentlyAccessedItemsItemCalculatedData;
-
-/**
- * Calculated data for recently accessed item.
- */
-export type AddonBlockRecentlyAccessedItemsItemCalculatedData = {
-    iconUrl: string; // Icon URL. Calculated by the app.
-};

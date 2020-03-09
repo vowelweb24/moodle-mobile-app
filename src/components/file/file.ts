@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import { CoreMimetypeUtilsProvider } from '@providers/utils/mimetype';
 import { CoreUtilsProvider } from '@providers/utils/utils';
 import { CoreTextUtilsProvider } from '@providers/utils/text';
 import { CoreConstants } from '@core/constants';
-import { CorePluginFileDelegate } from '@providers/plugin-file-delegate';
 
 /**
  * Component to handle a remote file. Shows the file name, icon (depending on mimetype) and a button
@@ -57,16 +56,10 @@ export class CoreFileComponent implements OnInit, OnDestroy {
     protected timemodified: number;
     protected observer;
 
-    constructor(private sitesProvider: CoreSitesProvider,
-            private utils: CoreUtilsProvider,
-            private domUtils: CoreDomUtilsProvider,
-            private filepoolProvider: CoreFilepoolProvider,
-            private appProvider: CoreAppProvider,
-            private fileHelper: CoreFileHelperProvider,
-            private mimeUtils: CoreMimetypeUtilsProvider,
-            private eventsProvider: CoreEventsProvider,
-            private textUtils: CoreTextUtilsProvider,
-            private pluginFileDelegate: CorePluginFileDelegate) {
+    constructor(private sitesProvider: CoreSitesProvider, private utils: CoreUtilsProvider, private domUtils: CoreDomUtilsProvider,
+            private filepoolProvider: CoreFilepoolProvider, private appProvider: CoreAppProvider,
+            private fileHelper: CoreFileHelperProvider, private mimeUtils: CoreMimetypeUtilsProvider,
+            private eventsProvider: CoreEventsProvider, private textUtils: CoreTextUtilsProvider) {
         this.onDelete = new EventEmitter();
     }
 
@@ -111,7 +104,7 @@ export class CoreFileComponent implements OnInit, OnDestroy {
     /**
      * Convenience function to get the file state and set variables based on it.
      *
-     * @return Promise resolved when state has been calculated.
+     * @return {Promise<void>} Promise resolved when state has been calculated.
      */
     protected calculateState(): Promise<void> {
         return this.filepoolProvider.getFileStateByUrl(this.siteId, this.fileUrl, this.timemodified).then((state) => {
@@ -125,7 +118,7 @@ export class CoreFileComponent implements OnInit, OnDestroy {
     /**
      * Convenience function to open a file, downloading it if needed.
      *
-     * @return Promise resolved when file is opened.
+     * @return {Promise<string>} Promise resolved when file is opened.
      */
     protected openFile(): Promise<any> {
         return this.fileHelper.downloadAndOpenFile(this.file, this.component, this.componentId, this.state, (event) => {
@@ -141,12 +134,14 @@ export class CoreFileComponent implements OnInit, OnDestroy {
     /**
      * Download a file and, optionally, open it afterwards.
      *
-     * @param e Click event.
-     * @param openAfterDownload Whether the file should be opened after download.
+     * @param {Event} [e] Click event.
+     * @param {boolean} openAfterDownload Whether the file should be opened after download.
      */
     download(e?: Event, openAfterDownload: boolean = false): void {
         e && e.preventDefault();
         e && e.stopPropagation();
+
+        let promise;
 
         if (this.isDownloading && !openAfterDownload) {
             return;
@@ -169,7 +164,7 @@ export class CoreFileComponent implements OnInit, OnDestroy {
         }
 
         if (!this.appProvider.isOnline() && (!openAfterDownload || (openAfterDownload &&
-                !this.fileHelper.isStateDownloaded(this.state)))) {
+                !(this.state === CoreConstants.DOWNLOADED || this.state === CoreConstants.OUTDATED)))) {
             this.domUtils.showErrorModal('core.networkerrormsg', true);
 
             return;
@@ -182,26 +177,20 @@ export class CoreFileComponent implements OnInit, OnDestroy {
             });
         } else {
             // File doesn't need to be opened (it's a prefetch). Show confirm modal if file size is defined and it's big.
-            this.pluginFileDelegate.getFileSize({fileurl: this.fileUrl, filesize: this.fileSize}, this.siteId).then((size) => {
+            promise = this.fileSize ? this.domUtils.confirmDownloadSize({ size: this.fileSize, total: true }) : Promise.resolve();
+            promise.then(() => {
+                // User confirmed, add the file to queue.
+                return this.filepoolProvider.invalidateFileByUrl(this.siteId, this.fileUrl).finally(() => {
+                    this.isDownloading = true;
 
-                const promise = size ? this.domUtils.confirmDownloadSize({ size: size, total: true }) : Promise.resolve();
-
-                return promise.then(() => {
-                    // User confirmed, add the file to queue.
-                    return this.filepoolProvider.invalidateFileByUrl(this.siteId, this.fileUrl).finally(() => {
-                        this.isDownloading = true;
-
-                        this.filepoolProvider.addToQueueByUrl(this.siteId, this.fileUrl, this.component,
-                            this.componentId, this.timemodified, undefined, undefined, 0, this.file).catch((error) => {
-                                this.domUtils.showErrorModalDefault(error, 'core.errordownloading', true);
-                                this.calculateState();
-                            });
-                    });
-                }).catch(() => {
-                    // User cancelled.
+                    this.filepoolProvider.addToQueueByUrl(this.siteId, this.fileUrl, this.component,
+                        this.componentId, this.timemodified, undefined, undefined, 0, this.file).catch((error) => {
+                            this.domUtils.showErrorModalDefault(error, 'core.errordownloading', true);
+                            this.calculateState();
+                        });
                 });
-            }).catch((error) => {
-                this.domUtils.showErrorModalDefault(error, 'core.errordownloading', true);
+            }).catch(() => {
+                // Ignore error.
             });
         }
     }
@@ -209,7 +198,7 @@ export class CoreFileComponent implements OnInit, OnDestroy {
     /**
      * Delete the file.
      *
-     * @param e Click event.
+     * @param {Event} e Click event.
      */
     delete(e: Event): void {
         e.preventDefault();

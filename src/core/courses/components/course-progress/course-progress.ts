@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ export class CoreCoursesCourseProgressComponent implements OnInit, OnDestroy {
     /**
      * Open a course.
      *
-     * @param course The course to open.
+     * @param {any} course The course to open.
      */
     openCourse(course: any): void {
         this.courseHelper.openCourse(this.navCtrl, course);
@@ -139,7 +139,7 @@ export class CoreCoursesCourseProgressComponent implements OnInit, OnDestroy {
     /**
      * Prefetch the course.
      *
-     * @param e Click event.
+     * @param {Event} e Click event.
      */
     prefetchCourse(e: Event): void {
         e.preventDefault();
@@ -155,7 +155,7 @@ export class CoreCoursesCourseProgressComponent implements OnInit, OnDestroy {
     /**
      * Update the course status icon and title.
      *
-     * @param status Status to show.
+     * @param {string} status Status to show.
      */
     protected updateCourseStatus(status: string): void {
         const statusData = this.courseHelper.getCourseStatusIconAndTitleFromStatus(status);
@@ -167,7 +167,7 @@ export class CoreCoursesCourseProgressComponent implements OnInit, OnDestroy {
     /**
      * Show the context menu.
      *
-     * @param e Click Event.
+     * @param {Event} e Click Event.
      */
     showCourseOptionsMenu(e: Event): void {
         e.preventDefault();
@@ -210,7 +210,7 @@ export class CoreCoursesCourseProgressComponent implements OnInit, OnDestroy {
     /**
      * Hide/Unhide the course from the course list.
      *
-     * @param hide True to hide and false to show.
+     * @param {boolean} hide True to hide and false to show.
      */
     protected setCourseHidden(hide: boolean): void {
         this.showSpinner = true;
@@ -232,7 +232,7 @@ export class CoreCoursesCourseProgressComponent implements OnInit, OnDestroy {
     /**
      * Favourite/Unfavourite the course from the course list.
      *
-     * @param favourite True to favourite and false to unfavourite.
+     * @param {boolean} favourite True to favourite and false to unfavourite.
      */
     protected setCourseFavourite(favourite: boolean): void {
         this.showSpinner = true;

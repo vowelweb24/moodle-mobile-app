@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ export class CoreContextMenuComponent implements OnInit, OnDestroy {
     /**
      * Add a context menu item.
      *
-     * @param item The item to add.
+     * @param {CoreContextMenuItemComponent} item The item to add.
      */
     addItem(item: CoreContextMenuItemComponent): void {
         if (this.parentContextMenu) {
@@ -108,7 +108,7 @@ export class CoreContextMenuComponent implements OnInit, OnDestroy {
      * Merge the current context menu with the one passed as parameter. All the items in this menu will be moved to the
      * one passed as parameter.
      *
-     * @param contextMenu The context menu where to move the items.
+     * @param {CoreContextMenuComponent} contextMenu The context menu where to move the items.
      */
     mergeContextMenus(contextMenu: CoreContextMenuComponent): void {
         this.parentContextMenu = contextMenu;
@@ -128,7 +128,7 @@ export class CoreContextMenuComponent implements OnInit, OnDestroy {
     /**
      * Remove an item from the context menu.
      *
-     * @param item The item to remove.
+     * @param {CoreContextMenuItemComponent} item The item to remove.
      */
     removeItem(item: CoreContextMenuItemComponent): void {
         if (this.parentContextMenu) {
@@ -173,19 +173,15 @@ export class CoreContextMenuComponent implements OnInit, OnDestroy {
     /**
      * Show the context menu.
      *
-     * @param event Event.
+     * @param {MouseEvent} event Event.
      */
     showContextMenu(event: MouseEvent): void {
         if (!this.expanded) {
             const popover = this.popoverCtrl.create(CoreContextMenuPopoverComponent,
                 { title: this.title, items: this.items, id: this.uniqueId, showBackdrop: true });
 
-            popover.onDidDismiss((item: CoreContextMenuItemComponent) => {
+            popover.onDidDismiss(() => {
                 this.expanded = false;
-
-                if (item) {
-                    item.onClosed.emit();
-                }
             });
             popover.present({
                 ev: event

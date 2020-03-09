@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 import {
     Component, Input, OnInit, OnChanges, OnDestroy, ViewContainerRef, ViewChild, ComponentRef, SimpleChange, ChangeDetectorRef,
-    ElementRef, Optional, Output, EventEmitter, DoCheck, KeyValueDiffers, AfterContentInit, AfterViewInit
+    ElementRef, Optional, Output, EventEmitter, DoCheck, KeyValueDiffers, AfterContentInit, AfterViewInit, NgModule, CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA
 } from '@angular/core';
 import { NavController } from 'ionic-angular';
 import { CoreCompileProvider } from '../../providers/compile';
@@ -96,6 +96,7 @@ export class CoreCompileHtmlComponent implements OnChanges, OnDestroy, DoCheck {
             // Create a new component and a new module.
             this.creatingComponent = true;
             this.compiling.emit(true);
+            console.log("injector",this.text,this.extraImports,"template")
             this.compileProvider.createAndCompileComponent(this.text, this.getComponentClass(), this.extraImports)
                     .then((factory) => {
                 // Destroy previous components.
@@ -129,7 +130,7 @@ export class CoreCompileHtmlComponent implements OnChanges, OnDestroy, DoCheck {
     /**
      * Get a class that defines the dynamic component.
      *
-     * @return The component class.
+     * @return {any} The component class.
      */
     protected getComponentClass(): any {
         // tslint:disable: no-this-assignment
@@ -221,11 +222,11 @@ export class CoreCompileHtmlComponent implements OnChanges, OnDestroy, DoCheck {
     /**
      * Call a certain function on the component instance.
      *
-     * @param name Name of the function to call.
-     * @param params List of params to send to the function.
-     * @param callWhenCreated If this param is true and the component hasn't been created yet, call the function
-     *                        once the component has been created.
-     * @return Result of the call. Undefined if no component instance or the function doesn't exist.
+     * @param {string} name Name of the function to call.
+     * @param {any[]} params List of params to send to the function.
+     * @param {boolean} [callWhenCreated=true] If this param is true and the component hasn't been created yet, call the function
+     *                                         once the component has been created.
+     * @return {any} Result of the call. Undefined if no component instance or the function doesn't exist.
      */
     callComponentFunction(name: string, params?: any[], callWhenCreated: boolean = true): any {
         if (this.componentInstance) {

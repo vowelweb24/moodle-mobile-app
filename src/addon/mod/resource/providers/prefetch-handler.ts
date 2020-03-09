@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@ import { CoreCourseResourcePrefetchHandlerBase } from '@core/course/classes/reso
 import { AddonModResourceProvider } from './resource';
 import { AddonModResourceHelperProvider } from './helper';
 import { CoreConstants } from '@core/constants';
-import { CoreFilterHelperProvider } from '@core/filter/providers/helper';
-import { CorePluginFileDelegate } from '@providers/plugin-file-delegate';
 
 /**
  * Handler to prefetch resources.
@@ -36,29 +34,21 @@ export class AddonModResourcePrefetchHandler extends CoreCourseResourcePrefetchH
     modName = 'resource';
     component = AddonModResourceProvider.COMPONENT;
 
-    constructor(translate: TranslateService,
-            appProvider: CoreAppProvider,
-            utils: CoreUtilsProvider,
-            courseProvider: CoreCourseProvider,
-            filepoolProvider: CoreFilepoolProvider,
-            sitesProvider: CoreSitesProvider,
-            domUtils: CoreDomUtilsProvider,
-            filterHelper: CoreFilterHelperProvider,
-            pluginFileDelegate: CorePluginFileDelegate,
-            protected resourceProvider: AddonModResourceProvider,
+    constructor(translate: TranslateService, appProvider: CoreAppProvider, utils: CoreUtilsProvider,
+            courseProvider: CoreCourseProvider, filepoolProvider: CoreFilepoolProvider, sitesProvider: CoreSitesProvider,
+            domUtils: CoreDomUtilsProvider, protected resourceProvider: AddonModResourceProvider,
             protected resourceHelper: AddonModResourceHelperProvider) {
 
-        super(translate, appProvider, utils, courseProvider, filepoolProvider, sitesProvider, domUtils, filterHelper,
-                pluginFileDelegate);
+        super(translate, appProvider, utils, courseProvider, filepoolProvider, sitesProvider, domUtils);
     }
 
     /**
      * Return the status to show based on current status.
      *
-     * @param module Module.
-     * @param status The current status.
-     * @param canCheck Whether the site allows checking for updates.
-     * @return Status to display.
+     * @param {any} module Module.
+     * @param {string} status The current status.
+     * @param {boolean} canCheck Whether the site allows checking for updates.
+     * @return {string} Status to display.
      */
     determineStatus(module: any, status: string, canCheck: boolean): string {
         if (status == CoreConstants.DOWNLOADED && module) {
@@ -82,13 +72,13 @@ export class AddonModResourcePrefetchHandler extends CoreCourseResourcePrefetchH
     /**
      * Download or prefetch the content.
      *
-     * @param module The module object returned by WS.
-     * @param courseId Course ID.
-     * @param prefetch True to prefetch, false to download right away.
-     * @param dirPath Path of the directory where to store all the content files. This is to keep the files
-     *                relative paths and make the package work in an iframe. Undefined to download the files
-     *                in the filepool root folder.
-     * @return Promise resolved when all content is downloaded. Data returned is not reliable.
+     * @param {any} module The module object returned by WS.
+     * @param {number} courseId Course ID.
+     * @param {boolean} [prefetch] True to prefetch, false to download right away.
+     * @param {string} [dirPath] Path of the directory where to store all the content files. This is to keep the files
+     *                           relative paths and make the package work in an iframe. Undefined to download the files
+     *                           in the filepool root folder.
+     * @return {Promise<any>} Promise resolved when all content is downloaded. Data returned is not reliable.
      */
     downloadOrPrefetch(module: any, courseId: number, prefetch?: boolean, dirPath?: string): Promise<any> {
         let promise;
@@ -115,9 +105,9 @@ export class AddonModResourcePrefetchHandler extends CoreCourseResourcePrefetchH
     /**
      * Invalidate the prefetched content.
      *
-     * @param moduleId The module ID.
-     * @param courseId Course ID the module belongs to.
-     * @return Promise resolved when the data is invalidated.
+     * @param {number} moduleId The module ID.
+     * @param {number} courseId Course ID the module belongs to.
+     * @return {Promise<any>} Promise resolved when the data is invalidated.
      */
     invalidateContent(moduleId: number, courseId: number): Promise<any> {
         return this.resourceProvider.invalidateContent(moduleId, courseId);
@@ -126,9 +116,9 @@ export class AddonModResourcePrefetchHandler extends CoreCourseResourcePrefetchH
     /**
      * Invalidate WS calls needed to determine module status.
      *
-     * @param module Module.
-     * @param courseId Course ID the module belongs to.
-     * @return Promise resolved when invalidated.
+     * @param {any} module Module.
+     * @param {number} courseId Course ID the module belongs to.
+     * @return {Promise<any>} Promise resolved when invalidated.
      */
     invalidateModule(module: any, courseId: number): Promise<any> {
         const promises = [];
@@ -142,9 +132,9 @@ export class AddonModResourcePrefetchHandler extends CoreCourseResourcePrefetchH
     /**
      * Check if a resource is downloadable.
      *
-     * @param module Module to check.
-     * @param courseId Course ID the module belongs to.
-     * @return Promise resolved with true if downloadable, resolved with false otherwise.
+     * @param {any} module Module to check.
+     * @param {number} courseId Course ID the module belongs to.
+     * @return {Promise<boolean>} Promise resolved with true if downloadable, resolved with false otherwise.
      */
     isDownloadable(module: any, courseId: number): Promise<boolean> {
         if (this.sitesProvider.getCurrentSite().isVersionGreaterEqualThan('3.7')) {
@@ -161,7 +151,7 @@ export class AddonModResourcePrefetchHandler extends CoreCourseResourcePrefetchH
     /**
      * Whether or not the handler is enabled on a site level.
      *
-     * @return A boolean, or a promise resolved with a boolean, indicating if the handler is enabled.
+     * @return {boolean|Promise<boolean>} A boolean, or a promise resolved with a boolean, indicating if the handler is enabled.
      */
     isEnabled(): boolean | Promise<boolean> {
         return this.resourceProvider.isPluginEnabled();

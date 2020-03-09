@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -55,8 +55,6 @@ export class CoreSettingsAboutPage {
     storageType: string;
     localNotifAvailable: string;
     pushId: string;
-    siteUrl: string;
-    isPrefixedUrl: boolean;
 
     constructor(platform: Platform, device: Device, appProvider: CoreAppProvider, fileProvider: CoreFileProvider,
             initDelegate: CoreInitDelegate, langProvider: CoreLangProvider, sitesProvider: CoreSitesProvider,
@@ -116,9 +114,5 @@ export class CoreSettingsAboutPage {
 
         this.localNotifAvailable = localNotificationsProvider.isAvailable() ? 'core.yes' : 'core.no';
         this.pushId = pushNotificationsProvider.getPushId();
-
-        this.siteUrl = (currentSite && currentSite.getURL()) ||
-            (typeof CoreConfigConstants.siteurl == 'string' && CoreConfigConstants.siteurl);
-        this.isPrefixedUrl = !!CoreConfigConstants.siteurl;
     }
 }

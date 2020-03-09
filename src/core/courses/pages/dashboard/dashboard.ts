@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import { CoreSiteHomeIndexComponent } from '@core/sitehome/components/index/inde
 import { CoreCoursesProvider } from '../../providers/courses';
 import { CoreCoursesDashboardProvider } from '../../providers/dashboard';
 import { CoreCoursesMyCoursesComponent } from '../../components/my-courses/my-courses';
+import { StatusBar } from '@ionic-native/status-bar';
 
 /**
  * Page that displays the dashboard.
@@ -60,9 +61,9 @@ export class CoreCoursesDashboardPage implements OnDestroy {
     protected updateSiteObserver;
 
     constructor(private navCtrl: NavController, private coursesProvider: CoreCoursesProvider,
-            private sitesProvider: CoreSitesProvider, private siteHomeProvider: CoreSiteHomeProvider,
-            private eventsProvider: CoreEventsProvider, private dashboardProvider: CoreCoursesDashboardProvider,
-            private domUtils: CoreDomUtilsProvider, private blockDelegate: CoreBlockDelegate) {
+        private sitesProvider: CoreSitesProvider, private siteHomeProvider: CoreSiteHomeProvider,
+        private eventsProvider: CoreEventsProvider, private dashboardProvider: CoreCoursesDashboardProvider,
+        private domUtils: CoreDomUtilsProvider, private blockDelegate: CoreBlockDelegate, private statusBar: StatusBar) {
         this.loadSiteName();
     }
 
@@ -107,7 +108,17 @@ export class CoreCoursesDashboardPage implements OnDestroy {
             this.tabsReady = true;
         });
     }
-
+    ngOnInit() {
+        // this.statusBar.backgroundColorByHexString('#fff');
+        document.getElementById('changeclr').firstElementChild.setAttribute('style', 'background: #fff')
+        
+        document.getElementById('ccm').firstElementChild.setAttribute('style', 'color: #fa9d48')
+       
+        setTimeout(() => {
+            console.log("Hello", )
+            document.getElementById('searchclr').setAttribute('style', 'color: #fa9d48')
+        }, 10);
+    }
     /**
      * User entered the page.
      */
@@ -139,7 +150,7 @@ export class CoreCoursesDashboardPage implements OnDestroy {
     /**
      * Convenience function to fetch the dashboard data.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected loadDashboardContent(): Promise<any> {
         return this.dashboardProvider.isAvailable().then((available) => {
@@ -171,7 +182,7 @@ export class CoreCoursesDashboardPage implements OnDestroy {
     /**
      * Refresh the dashboard data.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     refreshDashboard(refresher: any): void {
         const promises = [];
@@ -195,7 +206,7 @@ export class CoreCoursesDashboardPage implements OnDestroy {
     /**
      * Refresh the dashboard data and My Courses.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     refreshMyCourses(refresher: any): void {
         // First of all, refresh dashboard blocks, maybe a new block was added and now we can display the dashboard.
@@ -222,12 +233,12 @@ export class CoreCoursesDashboardPage implements OnDestroy {
     /**
      * Convenience function to switch download enabled.
      *
-     * @param enable If enable or disable.
+     * @param {boolean} enable If enable or disable.
      */
     protected switchDownload(enable: boolean): void {
         this.downloadEnabled = (this.downloadCourseEnabled || this.downloadCoursesEnabled) && enable;
         this.downloadEnabledIcon = this.downloadEnabled ? 'checkbox-outline' : 'square-outline';
-        this.eventsProvider.trigger(CoreCoursesProvider.EVENT_DASHBOARD_DOWNLOAD_ENABLED_CHANGED, {enabled: this.downloadEnabled});
+        this.eventsProvider.trigger(CoreCoursesProvider.EVENT_DASHBOARD_DOWNLOAD_ENABLED_CHANGED, { enabled: this.downloadEnabled });
     }
 
     /**
@@ -236,12 +247,10 @@ export class CoreCoursesDashboardPage implements OnDestroy {
     protected loadFallbackBlocks(): void {
         this.blocks = [
             {
-                name: 'myoverview',
-                visible: true
+                name: 'myoverview'
             },
             {
-                name: 'timeline',
-                visible: true
+                name: 'timeline'
             }
         ];
     }

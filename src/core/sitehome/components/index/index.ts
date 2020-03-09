@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ export class CoreSiteHomeIndexComponent implements OnInit {
     /**
      * Refresh the data.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     doRefresh(refresher: any): void {
         const promises = [];
@@ -93,7 +93,7 @@ export class CoreSiteHomeIndexComponent implements OnInit {
     /**
      * Convenience function to fetch the data.
      *
-     * @return Promise resolved when done.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected loadContent(): Promise<any> {
         this.hasContent = false;
@@ -134,8 +134,7 @@ export class CoreSiteHomeIndexComponent implements OnInit {
             this.section = config.numsections ? sections.find((section) => section.section == 1) : false;
             if (this.section) {
                 this.section.hasContent = this.courseHelper.sectionHasContent(this.section);
-                this.hasContent = this.courseHelper.addHandlerDataForModules([this.section], this.siteHomeId, undefined,
-                        undefined, true) || this.hasContent;
+                this.hasContent = this.courseHelper.addHandlerDataForModules([this.section], this.siteHomeId) || this.hasContent;
             }
 
             // Add log in Moodle.

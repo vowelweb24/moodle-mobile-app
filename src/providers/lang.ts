@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ import { TranslateService } from '@ngx-translate/core';
 import * as moment from 'moment';
 import { Globalization } from '@ionic-native/globalization';
 import { Platform, Config } from 'ionic-angular';
-import { CoreAppProvider } from '@providers/app';
 import { CoreConfigProvider } from './config';
 import { CoreConfigConstants } from '../configconstants';
 
@@ -40,13 +39,6 @@ export class CoreLangProvider {
         translate.use(this.defaultLanguage);
 
         platform.ready().then(() => {
-            if (CoreAppProvider.isAutomated()) {
-                // Force current language to English when Behat is running.
-                this.changeCurrentLanguage('en');
-
-                return;
-            }
-
             this.getCurrentLanguage().then((language) => {
                 this.changeCurrentLanguage(language);
             });
@@ -61,9 +53,9 @@ export class CoreLangProvider {
     /**
      * Add a set of site plugins strings for a certain language.
      *
-     * @param lang The language where to add the strings.
-     * @param strings Object with the strings to add.
-     * @param prefix A prefix to add to all keys.
+     * @param {string} lang The language where to add the strings.
+     * @param {any} strings Object with the strings to add.
+     * @param {string} [prefix] A prefix to add to all keys.
      */
     addSitePluginsStrings(lang: string, strings: any, prefix?: string): void {
         lang = lang.replace(/_/g, '-'); // Use the app format instead of Moodle format.
@@ -98,8 +90,8 @@ export class CoreLangProvider {
      * Capitalize a string (make the first letter uppercase).
      * We cannot use a function from text utils because it would cause a circular dependency.
      *
-     * @param value String to capitalize.
-     * @return Capitalized string.
+     * @param {string} value String to capitalize.
+     * @return {string} Capitalized string.
      */
     protected capitalize(value: string): string {
         return value.charAt(0).toUpperCase() + value.slice(1);
@@ -108,8 +100,8 @@ export class CoreLangProvider {
     /**
      * Change current language.
      *
-     * @param language New language to use.
-     * @return Promise resolved when the change is finished.
+     * @param {string} language New language to use.
+     * @return {Promise<any>} Promise resolved when the change is finished.
      */
     changeCurrentLanguage(language: string): Promise<any> {
         const promises = [];
@@ -199,7 +191,7 @@ export class CoreLangProvider {
     /**
      * Get all current custom strings.
      *
-     * @return Custom strings.
+     * @return {any} Custom strings.
      */
     getAllCustomStrings(): any {
         return this.customStrings;
@@ -208,7 +200,7 @@ export class CoreLangProvider {
     /**
      * Get all current site plugins strings.
      *
-     * @return Site plugins strings.
+     * @return {any} Site plugins strings.
      */
     getAllSitePluginsStrings(): any {
         return this.sitePluginsStrings;
@@ -217,7 +209,7 @@ export class CoreLangProvider {
     /**
      * Get current language.
      *
-     * @return Promise resolved with the current language.
+     * @return {Promise<string>} Promise resolved with the current language.
      */
     getCurrentLanguage(): Promise<string> {
 
@@ -271,7 +263,7 @@ export class CoreLangProvider {
     /**
      * Get the default language.
      *
-     * @return Default language.
+     * @return {string} Default language.
      */
     getDefaultLanguage(): string {
         return this.defaultLanguage;
@@ -280,7 +272,7 @@ export class CoreLangProvider {
     /**
      * Get the fallback language.
      *
-     * @return Fallback language.
+     * @return {string} Fallback language.
      */
     getFallbackLanguage(): string {
         return this.fallbackLanguage;
@@ -289,8 +281,8 @@ export class CoreLangProvider {
     /**
      * Get the full list of translations for a certain language.
      *
-     * @param lang The language to check.
-     * @return Promise resolved when done.
+     * @param {string} lang The language to check.
+     * @return {Promise<any>} Promise resolved when done.
      */
     getTranslationTable(lang: string): Promise<any> {
         // Create a promise to convert the observable into a promise.
@@ -308,7 +300,7 @@ export class CoreLangProvider {
     /**
      * Load certain custom strings.
      *
-     * @param strings Custom strings to load (tool_mobile_customlangstrings).
+     * @param {string} strings Custom strings to load (tool_mobile_customlangstrings).
      */
     loadCustomStrings(strings: string): void {
         if (strings == this.customStringsRaw) {
@@ -323,8 +315,6 @@ export class CoreLangProvider {
             return;
         }
 
-        let currentLangChanged = false;
-
         const list: string[] = strings.split(/(?:\r\n|\r|\n)/);
         list.forEach((entry: string) => {
             const values: string[] = entry.split('|');
@@ -336,10 +326,6 @@ export class CoreLangProvider {
             }
 
             lang = values[2].replace(/_/g, '-'); // Use the app format instead of Moodle format.
-
-            if (lang == this.currentLanguage) {
-                currentLangChanged = true;
-            }
 
             if (!this.customStrings[lang]) {
                 this.customStrings[lang] = {};
@@ -354,22 +340,14 @@ export class CoreLangProvider {
         });
 
         this.customStringsRaw = strings;
-
-        if (currentLangChanged) {
-            // Some lang strings have changed, emit an event to update the pipes.
-            this.translate.onLangChange.emit({
-                lang: this.currentLanguage,
-                translations: this.translate.translations[this.currentLanguage]
-            });
-        }
     }
 
     /**
      * Load custom strings for a certain language that weren't loaded because the language wasn't active.
      *
-     * @param langObject The object with the strings to load.
-     * @param lang Language to load.
-     * @return Whether the translation table was modified.
+     * @param {any} langObject The object with the strings to load.
+     * @param {string} lang Language to load.
+     * @return {boolean} Whether the translation table was modified.
      */
     loadLangStrings(langObject: any, lang: string): boolean {
         let langApplied = false;
@@ -397,10 +375,10 @@ export class CoreLangProvider {
     /**
      * Load a string in a certain lang object and in the translate table if the lang is loaded.
      *
-     * @param langObject The object where to store the lang.
-     * @param lang Language code.
-     * @param key String key.
-     * @param value String value.
+     * @param {any} langObject The object where to store the lang.
+     * @param {string} lang Language code.
+     * @param {string} key String key.
+     * @param {string} value String value.
      */
     loadString(langObject: any, lang: string, key: string, value: string): void {
         lang = lang.replace(/_/g, '-'); // Use the app format instead of Moodle format.
@@ -429,7 +407,7 @@ export class CoreLangProvider {
     /**
      * Unload custom or site plugin strings, removing them from the translations table.
      *
-     * @param strings Strings to unload.
+     * @param {any} strings Strings to unload.
      */
     protected unloadStrings(strings: any): void {
         // Iterate over all languages and strings.

@@ -1,37 +1,40 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
+
 <head>
   <meta charset="UTF-8">
   <title>Moodle Desktop</title> <!-- Title is used in desktop, but should be ignored in mobile apps. -->
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta http-equiv="Content-Security-Policy" content="default-src * filesystem: cdvfile: file: data: gap: https://ssl.gstatic.com; img-src * filesystem: gap: data: cdvfile: file: https://ssl.gstatic.com android-webview-video-poster: blob:; style-src 'self' 'unsafe-inline' filesystem: cdvfile: file:; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* filesystem: cdvfile: file:; media-src * filesystem: cdvfile: file: gap: blob:">
+  <meta name="viewport"
+    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src * filesystem: cdvfile: file: data: gap: https://ssl.gstatic.com; img-src * filesystem: gap: data: cdvfile: file: https://ssl.gstatic.com android-webview-video-poster: blob:; style-src 'self' 'unsafe-inline' filesystem: cdvfile: file:; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* filesystem: cdvfile: file:; media-src * filesystem: cdvfile: file: gap: blob:">
   <meta name="format-detection" content="telephone=no">
   <meta name="msapplication-tap-highlight" content="no">
 
   <!-- Workaround for Cordova/Angular conflict:
        http://weblogs.thinktecture.com/thomas/2017/02/cordova-vs-zonejs-or-why-is-angulars-document-event-listener-not-in-a-zone.html-->
   <script>
-  (function () {
-    'use strict';
+    (function () {
+      'use strict';
 
-    var EvTarget = EventTarget || Element; // EventTarget doesn't exist in iOS 8 and 9.
+      var EvTarget = EventTarget || Element; // EventTarget doesn't exist in iOS 8 and 9.
 
-    window.addEventListener = function () {
-      EvTarget.prototype.addEventListener.apply(this, arguments);
-    };
+      window.addEventListener = function () {
+        EvTarget.prototype.addEventListener.apply(this, arguments);
+      };
 
-    window.removeEventListener = function () {
-      EvTarget.prototype.removeEventListener.apply(this, arguments);
-    };
+      window.removeEventListener = function () {
+        EvTarget.prototype.removeEventListener.apply(this, arguments);
+      };
 
-    document.addEventListener = function () {
-      EvTarget.prototype.addEventListener.apply(this, arguments);
-    };
+      document.addEventListener = function () {
+        EvTarget.prototype.addEventListener.apply(this, arguments);
+      };
 
-    document.removeEventListener = function () {
-      EvTarget.prototype.removeEventListener.apply(this, arguments);
-    };
-  })();
+      document.removeEventListener = function () {
+        EvTarget.prototype.removeEventListener.apply(this, arguments);
+      };
+    })();
   </script>
 
   <script src="assets/ydn.db-dev.js"></script>
@@ -57,8 +60,6 @@
   </script>-->
 
   <link href="build/main.css" rel="stylesheet">
-
-  <script src="lib/mathjax/MathJax.js?delayStartupUntil=configured"></script>
 
 </head>
 <body>

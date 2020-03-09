@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ export class CoreInfiniteLoadingComponent implements OnChanges {
     /**
      * Detect changes on input properties.
      *
-     * @param changes Changes.
+     * @param {SimpleChange}} changes Changes.
      */
     ngOnChanges(changes: {[name: string]: SimpleChange}): void {
         if (changes.enabled && this.enabled && this.position == 'bottom') {
@@ -64,7 +64,7 @@ export class CoreInfiniteLoadingComponent implements OnChanges {
     /**
      * Load More items calling the action provided.
      *
-     * @param infiniteScroll Infinite scroll object only if triggered from the scroll.
+     * @param {InfiniteScroll} [infiniteScroll] Infinite scroll object only if triggered from the scroll.
      */
     loadMore(infiniteScroll?: InfiniteScroll): void {
         if (this.loadingMore) {
@@ -110,7 +110,7 @@ export class CoreInfiniteLoadingComponent implements OnChanges {
     /**
      * Get the height of the element.
      *
-     * @return Height.
+     * @return {number} Height.
      */
     getHeight(): number {
         return this.getElementHeight(this.topButton) + this.getElementHeight(this.infiniteEl) +
@@ -120,8 +120,8 @@ export class CoreInfiniteLoadingComponent implements OnChanges {
     /**
      * Get the height of an element.
      *
-     * @param element Element ref.
-     * @return Height.
+     * @param {ElementRef} element Element ref.
+     * @return {number} Height.
      */
     protected getElementHeight(element: ElementRef): number {
         if (element && element.nativeElement) {

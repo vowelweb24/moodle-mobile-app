@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ export class CoreUserAboutPage {
     /**
      * Refresh the user.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     refreshUser(refresher?: any): void {
         this.userProvider.invalidateUserCache(this.userId).finally(() => {

@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -125,7 +125,7 @@ export class AddonModWikiEditPage implements OnInit, OnDestroy {
     /**
      * Convenience function to get wiki page data.
      *
-     * @return Promise resolved with boolean: whether it was successful.
+     * @return {Promise<boolean>} Promise resolved with boolean: whether it was successful.
      */
     protected fetchWikiPageData(): Promise<boolean> {
         let promise,
@@ -247,7 +247,7 @@ export class AddonModWikiEditPage implements OnInit, OnDestroy {
     /**
      * Navigate to a new offline page.
      *
-     * @param title Page title.
+     * @param {string} title Page title.
      */
     protected goToNewOfflinePage(title: string): void {
         if (this.courseId && (this.module.id || this.wikiId)) {
@@ -274,8 +274,8 @@ export class AddonModWikiEditPage implements OnInit, OnDestroy {
     /**
      * Check if we need to navigate to a new state.
      *
-     * @param title Page title.
-     * @return Promise resolved when done.
+     * @param {string} title Page title.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected gotoPage(title: string): Promise<any> {
         return this.retrieveModuleInfo(this.wikiId).then(() => {
@@ -316,7 +316,7 @@ export class AddonModWikiEditPage implements OnInit, OnDestroy {
     /**
      * Check if data has changed.
      *
-     * @return Whether data has changed.
+     * @return {boolean} Whether data has changed.
      */
     protected hasDataChanged(): boolean {
         const values = this.pageForm.value;
@@ -327,7 +327,7 @@ export class AddonModWikiEditPage implements OnInit, OnDestroy {
     /**
      * Check if we can leave the page or not.
      *
-     * @return Resolved if we can leave it, rejected if not.
+     * @return {boolean|Promise<void>} Resolved if we can leave it, rejected if not.
      */
     ionViewCanLeave(): boolean | Promise<void> {
         if (this.forceLeave) {
@@ -355,7 +355,7 @@ export class AddonModWikiEditPage implements OnInit, OnDestroy {
     /**
      * In case we are NOT editing an offline page, check if the page loaded in previous view is different than this view.
      *
-     * @return Whether previous view wiki page is different than current page.
+     * @return {boolean} Whether previous view wiki page is different than current page.
      */
     protected previousViewIsDifferentPageOnline(): boolean {
         // We cannot precisely detect when the state is the same but this is close to it.
@@ -368,8 +368,8 @@ export class AddonModWikiEditPage implements OnInit, OnDestroy {
     /**
      * In case we're editing an offline page, check if the page loaded in previous view is different than this view.
      *
-     * @param title The current page title.
-     * @return Whether previous view wiki page is different than current page.
+     * @param {string} title The current page title.
+     * @return {boolean} Whether previous view wiki page is different than current page.
      */
     protected previousViewPageIsDifferentOffline(title: string): boolean {
         // We cannot precisely detect when the state is the same but this is close to it.
@@ -501,8 +501,8 @@ export class AddonModWikiEditPage implements OnInit, OnDestroy {
     /**
      * Fetch module information to redirect when needed.
      *
-     * @param wikiId Wiki ID.
-     * @return Promise resolved when done.
+     * @param {number} wikiId Wiki ID.
+     * @return {Promise<any>} Promise resolved when done.
      */
     protected retrieveModuleInfo(wikiId: number): Promise<any> {
         if (this.module.id && this.courseId) {

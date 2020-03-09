@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ export class CoreContentLinksChooseSitePage implements OnInit {
     /**
      * Perform the action on a certain site.
      *
-     * @param siteId Site ID.
+     * @param {string} siteId Site ID.
      */
     siteClicked(siteId: string): void {
         if (this.isRootURL) {

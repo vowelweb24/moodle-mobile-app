@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ export class CoreTagSearchPage {
     /**
      * Fetch tag collections.
      *
-     * @return Resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
     fetchCollections(): Promise<any> {
         return this.tagProvider.getTagCollections().then((collections) => {
@@ -83,7 +83,7 @@ export class CoreTagSearchPage {
     /**
      * Fetch tags.
      *
-     * @return Resolved when done.
+     * @return {Promise<any>} Resolved when done.
      */
     fetchTags(): Promise<any> {
         return this.tagProvider.getTagCloud(this.collectionId, undefined, undefined, this.query).then((cloud) => {
@@ -102,7 +102,7 @@ export class CoreTagSearchPage {
     /**
      * Refresh data.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     refreshData(refresher: any): void {
         this.utils.allPromises([
@@ -118,8 +118,8 @@ export class CoreTagSearchPage {
     /**
      * Search tags.
      *
-     * @param query Search query.
-     * @return Resolved when done.
+     * @param {string} query Search query.
+     * @return {Promise<any>} Resolved when done.
      */
     searchTags(query: string): Promise<any> {
         this.searching = true;

@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,15 +24,11 @@ import { CoreRatingComponentsModule } from '@core/rating/components/components.m
 import { CoreTagComponentsModule } from '@core/tag/components/components.module';
 import { AddonModForumIndexComponent } from './index/index';
 import { AddonModForumPostComponent } from './post/post';
-import { AddonForumDiscussionOptionsMenuComponent } from './discussion-options-menu/discussion-options-menu';
-import { AddonForumPostOptionsMenuComponent } from './post-options-menu/post-options-menu';
 
 @NgModule({
     declarations: [
         AddonModForumIndexComponent,
-        AddonModForumPostComponent,
-        AddonForumDiscussionOptionsMenuComponent,
-        AddonForumPostOptionsMenuComponent
+        AddonModForumPostComponent
     ],
     imports: [
         CommonModule,
@@ -49,14 +45,10 @@ import { AddonForumPostOptionsMenuComponent } from './post-options-menu/post-opt
     ],
     exports: [
         AddonModForumIndexComponent,
-        AddonModForumPostComponent,
-        AddonForumDiscussionOptionsMenuComponent,
-        AddonForumPostOptionsMenuComponent
+        AddonModForumPostComponent
     ],
     entryComponents: [
-        AddonModForumIndexComponent,
-        AddonForumDiscussionOptionsMenuComponent,
-        AddonForumPostOptionsMenuComponent
+        AddonModForumIndexComponent
     ]
 })
 export class AddonModForumComponentsModule {}

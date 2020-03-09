@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,14 +51,12 @@ export class CoreContextMenuItemComponent implements OnInit, OnDestroy, OnChange
     @Input() badgeClass?: number; // A class to set in the badge.
     @Input() hidden?: boolean; // Whether the item should be hidden.
     @Output() action?: EventEmitter<() => void>; // Will emit an event when the item clicked.
-    @Output() onClosed?: EventEmitter<() => void>; // Will emit an event when the popover is closed because the item was clicked.
 
     protected hasAction = false;
     protected destroyed = false;
 
     constructor(private ctxtMenu: CoreContextMenuComponent) {
         this.action = new EventEmitter();
-        this.onClosed = new EventEmitter();
     }
 
     /**
@@ -87,9 +85,9 @@ export class CoreContextMenuItemComponent implements OnInit, OnDestroy, OnChange
     /**
      * Get a boolean value from item.
      *
-     * @param value Value to check.
-     * @param defaultValue Value to use if undefined.
-     * @return Boolean value.
+     * @param {any} value Value to check.
+     * @param {boolean} defaultValue Value to use if undefined.
+     * @return {boolean} Boolean value.
      */
     protected getBooleanValue(value: any, defaultValue: boolean): boolean {
         if (typeof value == 'undefined') {

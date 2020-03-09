@@ -6,7 +6,7 @@
   <Identity Name="3312ADB7.MoodleDesktop"
     ProcessorArchitecture="x64"
     Publisher="CN=33CDCDF6-1EB5-4827-9897-ED25C91A32F6"
-    Version="3.8.0.0" />
+    Version="3.7.2.0" />
   <Properties>
     <DisplayName>Moodle Desktop</DisplayName>
     <PublisherDisplayName>Moodle Pty Ltd.</PublisherDisplayName>
@@ -23,7 +23,7 @@
     <rescap:Capability Name="runFullTrust"/>
   </Capabilities>
   <Applications>
-    <Application Id="com.moodle.moodlemobile" Executable="app\Moodle Desktop.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="com.learnow" Executable="app\Moodle Desktop.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
        BackgroundColor="#464646"
        DisplayName="Moodle Desktop"

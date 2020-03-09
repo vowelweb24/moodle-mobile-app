@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ export class CoreSitePluginsPluginPage {
     /**
      * Refresh the data.
      *
-     * @param refresher Refresher.
+     * @param {any} refresher Refresher.
      */
     refreshData(refresher: any): void {
         this.content.refreshContent(false).finally(() => {
@@ -95,7 +95,7 @@ export class CoreSitePluginsPluginPage {
     /**
      * Check if we can leave the page or not.
      *
-     * @return Resolved if we can leave it, rejected if not.
+     * @return {boolean|Promise<void>} Resolved if we can leave it, rejected if not.
      */
     ionViewCanLeave(): boolean | Promise<void> {
         return this.content.callComponentFunction('ionViewCanLeave');

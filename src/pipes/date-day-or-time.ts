@@ -1,4 +1,4 @@
-// (C) Copyright 2015 Moodle Pty Ltd.
+// (C) Copyright 2015 Martin Dougiamas
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@ export class CoreDateDayOrTimePipe implements PipeTransform {
     /**
      * Format a timestamp.
      *
-     * @param timestamp The UNIX timestamp (without milliseconds).
-     * @return Formatted time.
+     * @param {number|string} timestamp The UNIX timestamp (without milliseconds).
+     * @return {string} Formatted time.
      */
     transform(timestamp: string | number): string {
         if (typeof timestamp == 'string') {
